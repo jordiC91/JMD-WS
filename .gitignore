@@ -1,0 +1,8 @@
+*.class
+build/
+dist/
+nbproject/
+*.jar
+*.war
+*.ear
+build.xml
