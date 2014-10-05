@@ -3,6 +3,7 @@ package org.jmd.service;
 import java.sql.*;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
@@ -19,13 +20,15 @@ public class DiplomeService {
     }
 
     @GET
-    @Path("creer/{nom}")
-    public Response creer(@PathParam("nom")
-                        String nom,
-                        @Context 
-                        HttpServletRequest request) {
+    @Path("creer")
+    public Response creer(  @QueryParam("nom")
+                            String nom,
+                            @Context 
+                            HttpServletRequest request,
+                            @Context 
+                            ServletContext sContext) {
         
-        if (request.getSession().getAttribute("pseudo") != null) {
+        if (sContext.getAttribute("pseudo") != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }

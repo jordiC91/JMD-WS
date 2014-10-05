@@ -3,6 +3,7 @@ package org.jmd.service;
 import java.sql.*;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
+import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpSession;
 import javax.ws.rs.*;
@@ -26,7 +27,9 @@ public class AuthService {
                             @FormParam("password")
                             String password,
                             @Context 
-                            HttpServletRequest request) {
+                            HttpServletRequest request,
+                            @Context 
+                            ServletContext sContext) {
         
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
@@ -40,6 +43,7 @@ public class AuthService {
                 if (results.getString(2) != null) {                    
                     HttpSession s = request.getSession(true);
                     s.setAttribute("pseudo", pseudo);
+                    sContext.setAttribute("pseudo", pseudo);
                     
                     return Response.status(200).build();
                 }
