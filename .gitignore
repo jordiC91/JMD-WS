@@ -6,3 +6,6 @@ nbproject/
 *.war
 *.ear
 build.xml
+src/java/org/jmd/SQLUtils.java
+
+web/index.html
