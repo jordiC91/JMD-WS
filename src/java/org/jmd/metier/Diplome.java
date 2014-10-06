@@ -5,10 +5,13 @@
  */
 package org.jmd.metier;
 
+import javax.xml.bind.annotation.XmlRootElement;
+
 /**
  *
  * @author yoyito
  */
+@XmlRootElement
 public class Diplome {
     private int idDiplome;
     private String nom;

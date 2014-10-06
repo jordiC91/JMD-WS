@@ -22,9 +22,9 @@ public class AuthService {
 
     @POST
     @Path("login")
-    public Response login(  @FormParam("username")
+    public Response login(  @QueryParam("username")
                             String pseudo,
-                            @FormParam("password")
+                            @QueryParam("password")
                             String password,
                             @Context 
                             HttpServletRequest request,
