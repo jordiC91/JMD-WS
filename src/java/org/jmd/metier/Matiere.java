@@ -1,8 +1,3 @@
-/*
-* To change this license header, choose License Headers in Project Properties.
-* To change this template file, choose Tools | Templates
-* and open the template in the editor.
-*/
 package org.jmd.metier;
 
 import javax.xml.bind.annotation.XmlRootElement;
@@ -13,14 +8,17 @@ import javax.xml.bind.annotation.XmlRootElement;
  */
 @XmlRootElement
 public class Matiere {
+    
     /*
     ID INTEGER PRIMARY KEY AUTO_INCREMENT,
     NOM VARCHAR(100),
     COEFFICIENT INTEGER
     */
+    
     private int idMatiere;
     private String nom;
     private float coefficient;
+    private boolean isOption;
     
     public Matiere() {}
 
@@ -64,6 +62,20 @@ public class Matiere {
      */
     public void setCoefficient(float coefficient) {
         this.coefficient = coefficient;
+    }
+
+    /**
+     * @return the isOption
+     */
+    public boolean isIsOption() {
+        return isOption;
+    }
+
+    /**
+     * @param isOption the isOption to set
+     */
+    public void setIsOption(boolean isOption) {
+        this.isOption = isOption;
     }
     
     
