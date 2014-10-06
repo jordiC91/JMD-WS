@@ -9,6 +9,7 @@ import javax.ws.rs.*;
 import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.jmd.SQLUtils;
+import org.jmd.metier.Etablissement;
 
 @Path("diplome")
 public class DiplomeService {
@@ -115,5 +116,22 @@ public class DiplomeService {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
+    }
+    
+    @GET
+    @Path("etablissement")
+    @Produces("application/json")
+    public Etablissement[] getEtablissement() {
+        Etablissement a = new Etablissement();
+        Etablissement b = new Etablissement();
+        Etablissement[] c = new Etablissement[2];
+        
+        a.setNom("Caca");
+        b.setNom("Pénis");
+        
+        c[0] = a;
+        c[1] = b;
+        
+        return c;
     }
 }

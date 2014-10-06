@@ -10,12 +10,12 @@ public class SQLUtils {
     }
     
     public static Connection getConnexion() {
-        String url = "jdbc:mysql://localhost/jmd";
+        String url = "jdbc:mysql://localhost:8889/jmd";
         Connection conn = null;
         
         try {
             Class.forName ("com.mysql.jdbc.Driver").newInstance();
-            conn = DriverManager.getConnection(url, "root", "");
+            conn = DriverManager.getConnection(url, "root", "root");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             Logger.getLogger(SQLUtils.class.getName()).log(Level.SEVERE, null, ex);
         } 
