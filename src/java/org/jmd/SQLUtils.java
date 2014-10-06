@@ -10,7 +10,7 @@ public class SQLUtils {
     }
     
     public static Connection getConnexion() {
-        String url = "jdbc:mysql://localhost:8889/jmd";
+        String url = "jdbc:mysql://localhost/jmd";
         Connection conn = null;
         
         try {
