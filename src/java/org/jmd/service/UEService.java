@@ -27,9 +27,9 @@ public class UEService {
                             @Context 
                             HttpServletRequest request,
                             @Context 
-                            ServletContext sContext) {
+                            SecurityContext sContext) {
         
-        if (sContext.getAttribute("pseudo") != null) {
+        if (request.getSession().getAttribute("pseudo") != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }

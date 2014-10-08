@@ -29,11 +29,9 @@ public class MatiereService {
                             @QueryParam("isOption")
                             boolean isOption,
                             @Context 
-                            HttpServletRequest request,
-                            @Context 
-                            ServletContext sContext) {
+                            HttpServletRequest request) {
         
-        if (sContext.getAttribute("pseudo") != null) {
+        if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
@@ -61,7 +59,7 @@ public class MatiereService {
                                 @Context 
                                 HttpServletRequest request) {
         
-        if (request.getSession().getAttribute("pseudo") != null) {
+        if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }

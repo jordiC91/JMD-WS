@@ -27,9 +27,7 @@ public class AuthService {
                             @QueryParam("password")
                             String password,
                             @Context 
-                            HttpServletRequest request,
-                            @Context 
-                            ServletContext sContext) {
+                            HttpServletRequest request) {
         
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
@@ -40,10 +38,8 @@ public class AuthService {
             ResultSet results = stmt.executeQuery("SELECT * FROM administrateur WHERE (pseudo ='" + pseudo + "') AND (password ='" + password + "')");
             
             while (results.next()) {
-                if (results.getString(2) != null) {                    
-                    HttpSession s = request.getSession(true);
-                    s.setAttribute("pseudo", pseudo);
-                    sContext.setAttribute("pseudo", pseudo);
+                if (results.getString("PSEUDO") != null) {                    
+                    request.getSession(true);
                     
                     return Response.status(200).build();
                 }

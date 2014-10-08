@@ -31,6 +31,7 @@ public class ApplicationConfig extends Application {
     private void addRestResourceClasses(Set<Class<?>> resources) {
         resources.add(org.jmd.service.AuthService.class);
         resources.add(org.jmd.service.DiplomeService.class);
+        resources.add(org.jmd.service.EtablissementService.class);
         resources.add(org.jmd.service.MatiereService.class);
         resources.add(org.jmd.service.UEService.class);
     }
