@@ -5,6 +5,8 @@
  */
 package org.jmd.metier;
 
+import java.util.ArrayList;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -14,11 +16,17 @@ import javax.xml.bind.annotation.XmlRootElement;
 @XmlRootElement
 public class Annee {
     private int idAnnee;
+    @XmlElement(name="nom")
     private String nom;
+    @XmlElement(name="decoupage")
     private String decoupage;
     private boolean isLastYear;
     private int idEtablissement;
     private int idDiplome;
+    private String nomEtablissement;
+    private String nomDiplome;
+    @XmlElement(name="ues")
+    private ArrayList<UE> ues;
 
     public Annee () {}
     
@@ -106,5 +114,45 @@ public class Annee {
         this.idDiplome = idDiplome;
     }
     
+    
+    
+    /**
+     * @param ue 
+     * @return True si l'UE a bien été ajouté
+     */
+    public boolean addUE(UE ue) {
+        if(this.ues == null)
+            this.ues = new ArrayList<>();
+        
+        return this.ues.add(ue);
+    }    
+
+    /**
+     * @return the nomEtablissement
+     */
+    public String getNomEtablissement() {
+        return nomEtablissement;
+    }
+
+    /**
+     * @return the nomDiplome
+     */
+    public String getNomDiplome() {
+        return nomDiplome;
+    }
+
+    /**
+     * @param nomEtablissement the nomEtablissement to set
+     */
+    public void setNomEtablissement(String nomEtablissement) {
+        this.nomEtablissement = nomEtablissement;
+    }
+
+    /**
+     * @param nomDiplome the nomDiplome to set
+     */
+    public void setNomDiplome(String nomDiplome) {
+        this.nomDiplome = nomDiplome;
+    }
     
 }

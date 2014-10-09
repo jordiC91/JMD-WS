@@ -11,7 +11,7 @@ import org.jmd.SQLUtils;
 import org.jmd.metier.UE;
 
 /**
- * Service web gérant les UE (création / suppression / ...).
+ * Service web gÃ©rant les UE (crÃ©ation / suppression / ...).
  * 
  * @author jordi charpentier - yoann vanhoeserlande
  */
@@ -25,15 +25,15 @@ public class UEService {
     }
 
     /**
-     * Méthode permettant de créer une UE.
+     * MÃ©thode permettant de crÃ©er une UE.
      * 
-     * @param nom Le nom de l'UE à créer.
-     * @param request La requête HTTP ayant appelée le service.
+     * @param nom Le nom de l'UE Ã  crÃ©er.
+     * @param request La requÃªte HTTP ayant appelÃ©e le service.
      * 
-     * @return 2 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
-     * connecté (donc autorisé).
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * @return 2 possibilitÃ©s :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de crÃ©ation est
+     * connectÃ© (donc autorisÃ©).
+     * - Un code HTTP 401 si c'est un utilisateur non connectÃ© (donc non autorisÃ©)
      * qui a fait la demande.
      */
     @GET
@@ -65,15 +65,15 @@ public class UEService {
     }
     
     /**
-     * Méthode permettant de supprimer une UE.
+     * Mï¿½thode permettant de supprimer une UE.
      * 
-     * @param id L'identifiant de l'UE à supprimer.
-     * @param request La requête HTTP ayant appelée le service.
+     * @param id L'identifiant de l'UE ï¿½ supprimer.
+     * @param request La requï¿½te HTTP ayant appelï¿½e le service.
      * 
-     * @return 2 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de supprimé est
-     * connecté (donc autorisé).
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * @return 2 possibilitï¿½s :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de supprimï¿½ est
+     * connectï¿½ (donc autorisï¿½).
+     * - Un code HTTP 401 si c'est un utilisateur non connectï¿½ (donc non autorisï¿½)
      * qui a fait la demande.
      */
     @DELETE
@@ -142,7 +142,7 @@ public class UEService {
     }
     
     @GET
-    @Path("getAllUEOfAnnee/{idAnnee}")
+    @Path("getAllUEOfAnneeByYearType/{idAnnee}")
     @Produces("application/json")
     public ArrayList<UE> getAllUEOfAnneeByYearType(@QueryParam("idAnnee") 
                                                    int idAnnee,
@@ -181,8 +181,8 @@ public class UEService {
     }
     
     /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
+     * Mï¿½thode exï¿½cutï¿½e avant la fin de vie du service.
+     * La connexion ï¿½ la base est fermï¿½e.
      */
     @PreDestroy
     public void onDestroy() {

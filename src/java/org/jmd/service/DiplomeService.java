@@ -11,33 +11,34 @@ import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
 import org.jmd.SQLUtils;
 import org.jmd.metier.Diplome;
-import org.jmd.metier.Etablissement;
 
 @Path("diplome")
 public class DiplomeService {
     
     private Connection connexion;
- 
+    
     public DiplomeService() {
         
     }
-
-    @GET
-    @Path("creer")
-    public Response creer(  @QueryParam("nom")
-                            String nom,
-                            @Context 
-                            HttpServletRequest request  ) {
+    
+    @PUT
+    public Response insertDiplome(
+            @QueryParam("nom")
+                    String nom,
+            @Context
+                    HttpServletRequest request,
+            @Context
+                    ServletContext sContext) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
-
+            
             try {
-                Statement stmt = connexion.createStatement();  
+                Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO diplome (nom) VALUES ('" + nom + "')");
-                stmt.close();    
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -51,21 +52,21 @@ public class DiplomeService {
     }
     
     @DELETE
-    @Path("{id}")
-    public Response supprimer(  @PathParam("id")
-                                String id,
-                                @Context 
-                                HttpServletRequest request) {
+    public Response supprimer(
+            @QueryParam("id")
+                    String id,
+            @Context
+                    HttpServletRequest request) {
         
         if (request.getSession().getAttribute("pseudo") != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
-
+            
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM DIPLOME WHERE (ID = "+id+")");
-                }    
+                }
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -84,7 +85,7 @@ public class DiplomeService {
     public ArrayList<Diplome> getAll() {
         
         ArrayList<Diplome> diplomes = null;
-                
+        
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
         }
@@ -101,13 +102,13 @@ public class DiplomeService {
                 d.setNom(results.getString("NOM"));
                 diplomes.add(d);
             }
-
+            
             results.close();
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         return diplomes;
         //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
     }
@@ -121,22 +122,5 @@ public class DiplomeService {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-    }
-    
-    @GET
-    @Path("etablissement")
-    @Produces("application/json")
-    public Etablissement[] getEtablissement() {
-        Etablissement a = new Etablissement();
-        Etablissement b = new Etablissement();
-        Etablissement[] c = new Etablissement[2];
-        
-        a.setNom("Caca");
-        b.setNom("Pénis");
-        
-        c[0] = a;
-        c[1] = b;
-        
-        return c;
     }
 }

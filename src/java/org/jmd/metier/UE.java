@@ -5,6 +5,8 @@
  */
 package org.jmd.metier;
 
+import java.util.ArrayList;
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -16,6 +18,8 @@ public class UE {
     private int idUE;
     private String nom;
     private String yearType;
+    @XmlElement
+    private ArrayList<Matiere> matieres;
 
     public UE () {}
     
@@ -61,5 +65,15 @@ public class UE {
         this.yearType = yearType;
     }
     
+    /**
+     * @param matiere
+     * @return True si l'ajout c'est bien déroulé
+     */
+    public boolean addMatiere(Matiere matiere){
+        if(this.matieres == null)
+            this.matieres = new ArrayList<>();
+        
+        return this.matieres.add(matiere);
+    }
     
 }
