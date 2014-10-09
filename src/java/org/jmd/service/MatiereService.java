@@ -4,13 +4,17 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import org.jmd.SQLUtils;
 import org.jmd.metier.Matiere;
 
+/**
+ * Service web gérant les matières (création / suppression / ...).
+ * 
+ * @author jordi charpentier - yoann vanhoeserlande
+ */
 @Path("matiere")
 public class MatiereService {
     
@@ -20,16 +24,30 @@ public class MatiereService {
         
     }
 
+    /**
+     * Méthode permettant de créer une matière.
+     * 
+     * @param nom Le nom de la matière à créer.
+     * @param coefficient Le coefficient de la matière à créer.
+     * @param isOption Si la matière à créer est une option ou non.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 2 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
+     * connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     */
     @GET
     @Path("creer")
-    public Response creer(  @QueryParam("nom")
-                            String nom,
-                            @QueryParam("coefficient")
-                            float coefficient,
-                            @QueryParam("isOption")
-                            boolean isOption,
-                            @Context 
-                            HttpServletRequest request) {
+    public Response creer(@QueryParam("nom")
+                          String nom,
+                          @QueryParam("coefficient")
+                          float coefficient,
+                          @QueryParam("isOption")
+                          boolean isOption,
+                          @Context 
+                          HttpServletRequest request) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
@@ -42,8 +60,6 @@ public class MatiereService {
                 stmt.close();    
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                
-                return Response.status(500).build();
             }
             
             return Response.status(200).build();
@@ -52,12 +68,24 @@ public class MatiereService {
         }
     }
     
+    /**
+     * Méthode permettant de supprimer une matière.
+     * 
+     * @param id L'identifiant de la matière à supprimer.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 2 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de supprimé est
+     * connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     */
     @DELETE
     @Path("{id}")
-    public Response supprimer(  @PathParam("id")
-                                String id,
-                                @Context 
-                                HttpServletRequest request) {
+    public Response supprimer(@QueryParam("id")
+                              String id,
+                              @Context 
+                              HttpServletRequest request) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
@@ -81,10 +109,10 @@ public class MatiereService {
     }
     
     @GET
-    @Path("getAllByUE/{idUE}")
+    @Path("getAllMatieretOfUE/{idUE}")
     @Produces("application/json")
-    public ArrayList<Matiere> getAllByUE(   @PathParam("idUE") 
-                                            int idUE) {
+    public ArrayList<Matiere> getAllMatieretOfUE(@PathParam("idUE") 
+                                                 int idUE) {
         
         ArrayList<Matiere> matieres = new ArrayList<>();
                 
@@ -94,9 +122,9 @@ public class MatiereService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery(  "SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
-                                                    "FROM MATIERE, UE " +
-                                                    "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID)");
+            ResultSet results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+                                                  "FROM MATIERE, UE " +
+                                                  "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID)");
             
             Matiere m = null;
             
@@ -119,6 +147,49 @@ public class MatiereService {
         return matieres;
     }
     
+    @GET
+    @Path("getAllMatiereOfYear/{idAnnee}")
+    @Produces("application/json")
+    public ArrayList<Matiere> getAllMatiereOfYear(@PathParam("idAnnee") 
+                                                  int idAnnee) {
+        
+        ArrayList<Matiere> matieres = new ArrayList<>();
+                
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            ResultSet results = stmt.executeQuery("SELECT * " +
+                                                  "FROM MATIERE, UE_MAT, UE, ANN_UE, ANNEE " +
+                                                  "WHERE (UE.ID = UE_MAT.ID_UE) AND (MATIERE.ID = UE_MAT.ID_MAT) AND (ANN_UE.ID_ANN = ANNEE.ID) AND (ANN_UE.ID_UE = UE.ID) AND (ANNEE.ID = " + idAnnee + ")");
+            
+            Matiere m = null;
+            
+            while (results.next()) {
+                m = new Matiere();
+                m.setIdMatiere(results.getInt("ID"));
+                m.setNom(results.getString("NOM"));
+                m.setCoefficient(results.getFloat("COEFFICIENT"));
+                m.setIsOption(results.getBoolean("IS_OPTION"));
+                
+                matieres.add(m);
+            }
+
+            results.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+        return matieres;
+    }
+    
+    /**
+     * Méthode exécutée avant la fin de vie du service.
+     * La connexion à la base est fermée.
+     */
     @PreDestroy
     public void onDestroy() {
         if (connexion != null) {
