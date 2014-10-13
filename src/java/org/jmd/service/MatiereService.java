@@ -11,53 +11,56 @@ import org.jmd.SQLUtils;
 import org.jmd.metier.Matiere;
 
 /**
- * Service web gérant les matières (création / suppression / ...).
- * 
+ * Service web gï¿½rant les matiï¿½res (crï¿½ation / suppression / ...).
+ *
  * @author jordi charpentier - yoann vanhoeserlande
  */
 @Path("matiere")
 public class MatiereService {
     
     private Connection connexion;
- 
+    
     public MatiereService() {
         
     }
-
+    
     /**
-     * Méthode permettant de créer une matière.
-     * 
-     * @param nom Le nom de la matière à créer.
-     * @param coefficient Le coefficient de la matière à créer.
-     * @param isOption Si la matière à créer est une option ou non.
-     * @param request La requête HTTP ayant appelée le service.
-     * 
-     * @return 2 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
-     * connecté (donc autorisé).
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * MÃ©thode permettant de crÃ©er une matiÃ¨re.
+     *
+     * @param nom Le nom de la matiÃ¨re Ã  crÃ©er.
+     * @param coefficient Le coefficient de la matiÃ¨re Ã  crÃ©er.
+     * @param isOption Si la matiÃ¨re Ã  crÃ©er est une option ou non.
+     * @param idUE ID de l'UE auquel appartient la matiÃ¨re
+     * @param request La requÃªte HTTP ayant appelÃ©e le service.
+     *
+     * @return 2 possibilitÃ©s :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de crÃ©ation est
+     * connectÃ© (donc autorisÃ©).
+     * - Un code HTTP 401 si c'est un utilisateur non connectÃ© (donc non autorisÃ©)
      * qui a fait la demande.
      */
-    @GET
-    @Path("creer")
-    public Response creer(@QueryParam("nom")
-                          String nom,
-                          @QueryParam("coefficient")
-                          float coefficient,
-                          @QueryParam("isOption")
-                          boolean isOption,
-                          @Context 
-                          HttpServletRequest request) {
+    @PUT
+    public Response creer(
+            @QueryParam("nom")
+                    String nom,
+            @QueryParam("coefficient")
+                    float coefficient,
+            @QueryParam("isOption")
+                    boolean isOption,
+            @QueryParam("idUE")
+                    int idUE,
+            @Context
+                    HttpServletRequest request) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
-
+            
             try {
-                Statement stmt = connexion.createStatement();  
-                stmt.execute("INSERT INTO MATIERE (nom, coefficient, isOption) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ")");
-                stmt.close();    
+                Statement stmt = connexion.createStatement();
+                stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, ISOPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -69,33 +72,33 @@ public class MatiereService {
     }
     
     /**
-     * Méthode permettant de supprimer une matière.
-     * 
-     * @param id L'identifiant de la matière à supprimer.
-     * @param request La requête HTTP ayant appelée le service.
-     * 
-     * @return 2 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de supprimé est
-     * connecté (donc autorisé).
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * MÃ©thode permettant de supprimer une matiÃ¨re.
+     *
+     * @param id L'identifiant de la matiÃ¨re Ã  supprimer.
+     * @param request La requÃªte HTTP ayant appelÃªe le service.
+     *
+     * @return 2 possibilitÃ©s :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
+     * connectÃ© (donc autorisÃ©).
+     * - Un code HTTP 401 si c'est un utilisateur non connectÃ© (donc non autorisÃ©)
      * qui a fait la demande.
      */
     @DELETE
-    @Path("{id}")
-    public Response supprimer(@QueryParam("id")
-                              String id,
-                              @Context 
-                              HttpServletRequest request) {
+    public Response supprimer(
+            @QueryParam("id")
+            String id,
+            @Context
+                    HttpServletRequest request) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
-
+            
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
-                }    
+                }
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -109,13 +112,14 @@ public class MatiereService {
     }
     
     @GET
-    @Path("getAllMatieretOfUE/{idUE}")
+    @Path("getAllMatieretOfUE")
     @Produces("application/json")
-    public ArrayList<Matiere> getAllMatieretOfUE(@PathParam("idUE") 
-                                                 int idUE) {
+    public ArrayList<Matiere> getAllMatieretOfUE(
+            @QueryParam("idUE")
+                    int idUE) {
         
         ArrayList<Matiere> matieres = new ArrayList<>();
-                
+        
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
         }
@@ -123,72 +127,73 @@ public class MatiereService {
         try {
             Statement stmt = connexion.createStatement();
             ResultSet results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
-                                                  "FROM MATIERE, UE " +
-                                                  "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID)");
+                    "FROM MATIERE, UE " +
+                    "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID);");
             
             Matiere m = null;
             
             while (results.next()) {
                 m = new Matiere();
-                m.setIdMatiere(results.getInt("ID"));
-                m.setNom(results.getString("NOM"));
-                m.setCoefficient(results.getFloat("COEFFICIENT"));
-                m.setIsOption(results.getBoolean("IS_OPTION"));
+                m.setIdMatiere(results.getInt("MATIERE.ID"));
+                m.setNom(results.getString("MATIERE.NOM"));
+                m.setCoefficient(results.getFloat("MATIERE.COEFFICIENT"));
+                m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
                 
                 matieres.add(m);
             }
-
+            
             results.close();
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         return matieres;
     }
     
     @GET
-    @Path("getAllMatiereOfYear/{idAnnee}")
+    @Path("getAllMatiereOfYear")
     @Produces("application/json")
-    public ArrayList<Matiere> getAllMatiereOfYear(@PathParam("idAnnee") 
-                                                  int idAnnee) {
+    public ArrayList<Matiere> getAllMatiereOfYear(
+            @QueryParam("idAnnee")
+                    int idAnnee) {
         
         ArrayList<Matiere> matieres = new ArrayList<>();
-                
+        
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
         }
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * " +
-                                                  "FROM MATIERE, UE_MAT, UE, ANN_UE, ANNEE " +
-                                                  "WHERE (UE.ID = UE_MAT.ID_UE) AND (MATIERE.ID = UE_MAT.ID_MAT) AND (ANN_UE.ID_ANN = ANNEE.ID) AND (ANN_UE.ID_UE = UE.ID) AND (ANNEE.ID = " + idAnnee + ")");
+            ResultSet results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+                    "FROM MATIERE, UE, ANNEE " +
+                    "WHERE (UE.ID = MATIERE.ID_UE) AND (UE.ID_ANNEE = ANNEE.ID)  AND (ANNEE.ID = " + idAnnee + ");");
             
             Matiere m = null;
             
             while (results.next()) {
                 m = new Matiere();
-                m.setIdMatiere(results.getInt("ID"));
-                m.setNom(results.getString("NOM"));
-                m.setCoefficient(results.getFloat("COEFFICIENT"));
-                m.setIsOption(results.getBoolean("IS_OPTION"));
+                m.setIdMatiere(results.getInt("MATIERE.ID"));
+                m.setNom(results.getString("MATIERE.NOM"));
+                m.setCoefficient(results.getFloat("MATIERE.COEFFICIENT"));
+                m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
                 
                 matieres.add(m);
             }
-
+            
             results.close();
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         return matieres;
     }
     
     /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
+     * MÃ©thode exÃ©cutÃ©e avant la fin de vie du service.
+     * La connexion Ã  la base est fermÃ©e.
      */
     @PreDestroy
     public void onDestroy() {

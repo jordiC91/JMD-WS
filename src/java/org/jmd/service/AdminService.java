@@ -9,32 +9,32 @@ import javax.ws.rs.core.*;
 import org.jmd.SQLUtils;
 
 /**
- * Service web gérant l'authentification et la déconnexion d'un utilisateur.
+ * Service web gï¿½rant l'authentification et la dï¿½connexion d'un utilisateur.
  * 
  * @author jordi charpentier - yoann vanhoeserlande
  */
-@Path("authentification")
-public class AuthService {
+@Path("admin")
+public class AdminService {
     
     private Connection connexion;
  
-    public AuthService() {
+    public AdminService() {
         
     }
 
     /**
-     * Méthode permettant de connecter un utilisateur (si les identifiants sont
+     * MÃ©thode permettant de connecter un utilisateur (si les identifiants sont
      * bons). 
-     * Si les identifiants sont bons, une session est créée qui aura comme durée
-     * de vie celle définie dans le web.xml du projet.
+     * Si les identifiants sont bons, une session est crÃ©Ã©e qui aura comme durÃ©e
+     * de vie celle dÃ©finie dans le web.xml du projet.
      * 
      * @param pseudo Le pseudo de l'utilisateur.
      * @param password Le mot de passe de l'utilisateur.
-     * @param request La requête HTTP ayant appelée le service.
+     * @param request La requÃªte HTTP ayant appelÃ©e le service.
      * 
-     * @return 2 possibilités :
+     * @return 2 possibilitÃ©s :
      * - Un code HTTP 200 si les identifiants sont bons.
-     * - Un code HTTP 401 si les identifiants n'étaient pas bons.
+     * - Un code HTTP 401 si les identifiants n'Ã©taient pas bons.
      */
     @POST
     @Path("login")
@@ -64,19 +64,19 @@ public class AuthService {
             results.close();
             stmt.close();
         } catch (SQLException ex) {
-            Logger.getLogger(AuthService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
         }
         
         return Response.status(401).build();
     }
     
     /**
-     * Méthode permettant de déconnecter un utilisateur.
-     * La session actuelle de l'utilisateur est invalidée (= terminée).
+     * MÃ©thode permettant de dÃ©connecter un utilisateur.
+     * La session actuelle de l'utilisateur est invalidÃ©e (= terminÃ©e).
      * 
-     * @param request La requête HTTP ayant appelée le service.
+     * @param request La requÃªte HTTP ayant appelÃ©e le service.
      * 
-     * @return Un code HTTP 200 si la session a bien été terminée.
+     * @return Un code HTTP 200 si la session a bien Ã©tÃ© terminÃ©e.
      */
     @Path("logout")
     public Response logout(@Context 
@@ -87,9 +87,13 @@ public class AuthService {
         return Response.status(200).build();
     }
     
+    // MOT DE PASSE OUBLIE
+    
+    // REINITIALISER MOT DE PASSE
+    
     /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
+     * MÃ©thode exÃ©cutÃ©e avant la fin de vie du service.
+     * La connexion Ã  la base est fermÃ©e.
      */
     @PreDestroy
     public void onDestroy() {
@@ -97,7 +101,7 @@ public class AuthService {
             try {
                 connexion.close();
             } catch (SQLException ex) {
-                Logger.getLogger(AuthService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

@@ -29,8 +29,8 @@ public class ApplicationConfig extends Application {
      * If required, comment out calling this method in getClasses().
      */
     private void addRestResourceClasses(Set<Class<?>> resources) {
+        resources.add(org.jmd.service.AdminService.class);
         resources.add(org.jmd.service.AnneeService.class);
-        resources.add(org.jmd.service.AuthService.class);
         resources.add(org.jmd.service.DiplomeService.class);
         resources.add(org.jmd.service.EtablissementService.class);
         resources.add(org.jmd.service.MatiereService.class);

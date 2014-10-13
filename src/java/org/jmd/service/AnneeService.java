@@ -5,6 +5,7 @@
 */
 package org.jmd.service;
 
+import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -51,21 +52,23 @@ public class AnneeService {
             @QueryParam("idDiplome")
                     String idDiplome,
             @Context
-                    HttpServletRequest request,
-            @Context
-                    ServletContext sContext) {
+                    HttpServletRequest request) {
         
-        if (sContext.getAttribute("pseudo") != null) {
+        if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
             
             try {
                 Statement stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO ANNEE (NOM,DECOUPAGE,IS_LAST_YEAR,ID_ETABLISSEMENT,ID_DIPLOME) VALUES ('" + nom + "','" + decoupage + "','" + isLastYear + "','" + idEtablissement + "','" + idDiplome + "')");
+                stmt.execute("INSERT INTO ANNEE (NOM,DECOUPAGE,IS_LAST_YEAR,ID_ETABLISSEMENT,ID_DIPLOME) VALUES ('" + nom + "','" + decoupage + "','" + isLastYear + "','" + idEtablissement + "','" + idDiplome + "');");
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if(ex instanceof MySQLIntegrityConstraintViolationException){
+                    return Response.status(403).entity("DUPLICATE_ENTRY").build();
+                }
                 
                 return Response.status(500).build();
             }
@@ -83,14 +86,14 @@ public class AnneeService {
             @Context
                     HttpServletRequest request) {
         
-        if (request.getSession().getAttribute("pseudo") != null) {
+        if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
             
             try {
                 try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM DIPLOME WHERE (ID = "+id+")");
+                    stmt.executeUpdate("DELETE FROM DIPLOME WHERE (ID = "+id+");");
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -116,7 +119,7 @@ public class AnneeService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * FROM diplome ORDER BY id ASC");
+            ResultSet results = stmt.executeQuery("SELECT * FROM diplome ORDER BY id ASC;");
             annees = new ArrayList<>();
             Annee a = null;
             
@@ -166,8 +169,8 @@ public class AnneeService {
                 a.setNomEtablissement(results1.getString("ETABLISSEMENT.NOM"));
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
-                 
-               // Récupération des UEs pour une année
+                
+                // Récupération des UEs pour une année
                 results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
                 System.out.print("Query2 : SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
                 while(results2.next()){
@@ -189,7 +192,7 @@ public class AnneeService {
                     }
                     results3.close();
                     a.addUE(ue);
-                            
+                    
                 }
                 results2.close();
                 
@@ -200,7 +203,7 @@ public class AnneeService {
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
         }
-
+        
         return a;
         //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
         
