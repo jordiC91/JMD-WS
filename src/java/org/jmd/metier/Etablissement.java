@@ -1,65 +1,62 @@
-/*
-* To change this license header, choose License Headers in Project Properties.
-* To change this template file, choose Tools | Templates
-* and open the template in the editor.
-*/
 package org.jmd.metier;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
- * @author yoyito
+ * Classe représentant un établissement.
+ * 
+ * @author jordi charpentier - yoann vanhoeserlande
  */
 @XmlRootElement
 public class Etablissement {
+    
+    /**
+     * L'identifiant de l'établissement.
+     */
     private int idEtablissement;
+    
+    /**
+     * Le nom de l'établissement.
+     */
     private String nom = "";
+    
+    /**
+     * La ville de l'établissement.
+     */
     private String ville = "";
     
-    public Etablissement() {}
-
     /**
-     * @return the nom
+     * Constructeur par défaut de la classe.
      */
+    public Etablissement() {
+    
+    }
+    
+    /* Getters. */
+
     public String getNom() {
         return nom;
     }
+    
+    public String getVille() {
+        return ville;
+    }
+    
+    public int getIdEtablissement() {
+        return idEtablissement;
+    }
+    
+    /* Setters. */
 
-    /**
-     * @param nom the nom to set
-     */
     public void setNom(String nom) {
         this.nom = nom;
     }
 
-    /**
-     * @return the ville
-     */
-    public String getVille() {
-        return ville;
-    }
-
-    /**
-     * @param ville the ville to set
-     */
     public void setVille(String ville) {
         this.ville = ville;
     }
 
-    /**
-     * @return the idEtablissement
-     */
-    public int getIdEtablissement() {
-        return idEtablissement;
-    }
-
-    /**
-     * @param idEtablissement the idEtablissement to set
-     */
     public void setIdEtablissement(int idEtablissement) {
         this.idEtablissement = idEtablissement;
     }
-
-    
 }

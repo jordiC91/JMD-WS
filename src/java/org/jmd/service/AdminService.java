@@ -1,5 +1,7 @@
 package org.jmd.service;
 
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
@@ -97,7 +99,7 @@ public class AdminService {
      * @return Le code aléatoire généré.
      */
     private String generateRandomCode() {
-        char[] chars = "abcdefghijklmnopqrstuvwxyz0123456789".toCharArray();
+        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
         StringBuilder sb = new StringBuilder();
         Random random = new Random();
 
@@ -108,6 +110,41 @@ public class AdminService {
         
         return sb.toString();
     }
+    
+    private void sendMail(String subject, String text, String to) {
+        Properties properties = System.getProperties();
+        properties.put("mail.smtp.user", "jaimondiplome@gmail.com");
+        properties.put("mail.smtp.host", "smtp.gmail.com");
+        properties.put("mail.smtp.port", 465);
+        properties.put("mail.smtp.starttls.enable","true");
+        properties.put("mail.smtp.debug", "true");
+        properties.put("mail.smtp.auth", "true");
+        properties.put("mail.smtp.socketFactory.port", 465);
+        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
+        properties.put("mail.smtp.socketFactory.fallback", "false");
+
+        Session session = Session.getInstance(properties, 
+            new javax.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(Constantes.EMAIL_JMD, "gkc19iregpt3qir");
+                }  
+            }
+        );
+
+        try {
+            MimeMessage message = new MimeMessage(session);
+
+            message.setFrom(new InternetAddress(Constantes.EMAIL_JMD));
+            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
+            message.setSubject(subject);
+            message.setContent(text, "text/html; charset=utf-8");
+  
+            Transport.send(message);
+        } catch (MessagingException e) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+        }
+    } 
     
     /**
      * Méthode permettant de gérer la première étape de la demande de réinitialisation
@@ -134,7 +171,6 @@ public class AdminService {
         
         try {
             Statement stmt = connexion.createStatement();
-            
             ResultSet results = stmt.executeQuery("SELECT * FROM administrateur WHERE (pseudo ='" + pseudo + "')");
             
             String emailAdmin = "";
@@ -150,44 +186,17 @@ public class AdminService {
             stmt.execute("INSERT INTO CODE_REINIT_MDP (PSEUDO, CODE) VALUES ('" + pseudo + "','" + randomString + "');");
             stmt.close();
 
-            Properties properties = System.getProperties();
-            properties.setProperty("mail.smtp.auth", "true");
-            properties.setProperty("mail.smtp.starttls.enable", "true");
-            properties.setProperty("mail.smtp.host", "smtp.gmail.com");
-            properties.setProperty("mail.smtp.port", "25");
-
-            Session session = Session.getInstance(properties, 
-                new javax.mail.Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(Constantes.EMAIL_JMD, "gkc19iregpt3qir");
-                    }  
-                }
-            );
-
-            try {
-                MimeMessage message = new MimeMessage(session);
-
-                message.setFrom(new InternetAddress(Constantes.EMAIL_JMD));
-                message.addRecipient(Message.RecipientType.TO, new InternetAddress(emailAdmin));
-                message.setSubject("JMD - Mot de passe oublié");
-
-                String text = "Bonjour " + pseudo + ",<br />"
+            String text = "Bonjour " + pseudo + ",<br />"
                         + "Merci de cliquer <a href=\"" + Constantes.SERVER_URL + "/admin/resetPassword?pseudo="+ pseudo+ "&code=" + randomString + "\">ici</a> pour réinitialiser votre mot de passe."
                         + "<br /><br />"
                         + "Cordialement,<br />L'équipe de JMD<br /><br />"
                         + "PS : Si vous n'êtes pas à l'origine de cette demande, merci de cliquer <a href=\""+ Constantes.SERVER_URL + "/admin/cancelResetRequest?pseudo="+ pseudo + "\">ici</a>.";
-
-                message.setContent(text, "text/html; charset=utf-8");
-                
-                Transport.send(message);
-                
-                return Response.status(200).build();
-            } catch (MessagingException e) {
-                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
-
-                return Response.status(503).build();
-            }
+            
+            String subject = "JMD - Mot de passe oublié";
+            
+            sendMail(subject, text, emailAdmin);
+            
+            return Response.status(200).build();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
             
@@ -220,7 +229,7 @@ public class AdminService {
             int rows = stmt.executeUpdate("DELETE FROM CODE_REINIT_MDP WHERE (PSEUDO = '" + pseudo + "')");
         
             if (rows == 0) {
-                return Response.status(404).entity("Aucune demande.").build();
+                return Response.status(404).entity("Aucune demande trouvée.").build();
             }
         } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
@@ -232,18 +241,98 @@ public class AdminService {
     }
     
     /**
+     * Méthode permettant d'hasher une chaîne de caractères en SHA-256.
      * 
+     * @param passwordToHash La chaîne à hasher.
      * 
-     * @param pseudo
-     * @param code
+     * @return La chaîne hashée en SHA-256.
+     */
+    private String sha256(String passwordToHash) {
+        String generatedPassword = null;
+		
+	try {
+            MessageDigest md = MessageDigest.getInstance("SHA-256");
+            byte[] bytes = md.digest(passwordToHash.getBytes());
+            StringBuilder sb = new StringBuilder();
+			
+            for(int i=0; i < bytes.length; i++) {
+                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
+            }
+			
+            generatedPassword = sb.toString();
+	} catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Le SHA-256 n'est pas supporté.");
+	}
+		
+	return generatedPassword;
+    }
+    
+    /**
+     * Méthode permettant de faire la réinitialisation du mot de passe.
+     * 
+     * @param pseudo Le pseudo de la personne ayant fait la demande.
+     * @param code Le code généré lors de la première étape.
      * 
      * @return 
      */
     @Path("resetPassword")
+    @GET
     public Response resetPassword(@QueryParam("pseudo")
                                   String pseudo,
                                   @QueryParam("code")
                                   String code) {
+        
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            ResultSet results = stmt.executeQuery("SELECT * " +
+                                                  "FROM ADMINISTRATEUR, CODE_REINIT_MDP " +
+                                                  "WHERE (CODE_REINIT_MDP.PSEUDO = ADMINISTRATEUR.PSEUDO) AND (CODE_REINIT_MDP.PSEUDO = '" + pseudo + "') AND (CODE_REINIT_MDP.CODE = '" + code + "')");
+            
+            boolean wasFound = false;
+            String emailAdmin = "";
+            
+            while (results.next()) {    
+                emailAdmin = results.getString("EMAIL");
+                
+                if ( (results.getString("CODE").equals(code)) &&
+                     (results.getString("PSEUDO").equals(pseudo))) {
+                    
+                    wasFound = true;
+                    break;
+                }
+            }
+            
+            if (emailAdmin.length() == 0) {
+                return Response.status(404).entity("ADMIN_NOT_FOUND").build();
+            }
+            
+            if (!wasFound) {
+                return Response.status(404).entity("Aucune demande trouvée.").build();
+            } else {
+                String newMdp = generateRandomCode();
+                
+                String text = "Bonjour " + pseudo + ",<br />"
+                        + "Voici votre nouveau mot de passe : " + newMdp + "."
+                        + "<br /><br />"
+                        + "Cordialement,<br />L'équipe de JMD";
+            
+                String subject = "JMD - Nouveau mot de passe";
+            
+                sendMail(subject, text, emailAdmin);
+                
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
+            }
+            
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            return Response.status(503).build();
+        }
         
         return Response.status(200).build();
     }

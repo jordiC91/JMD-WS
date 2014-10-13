@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jmd.metier;
 
 import java.util.ArrayList;
@@ -10,70 +5,82 @@ import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
- * @author yoyito
+ * Classe représentant une UE.
+ * 
+ * @author jordi charpentier - yoann vanhoeserlande
  */
 @XmlRootElement
 public class UE {
+    
+    /**
+     * L'identifiant de l'UE.
+     */
     private int idUE;
+    
+    /**
+     * Le nom de l'UE.
+     */
     private String nom;
+    
+    /**
+     * Le type de l'UE (SEMESTRE 1/2, TRIMESTRE 1/2, ...).
+     */
     private String yearType;
+    
+    /**
+     * La liste des matières de l'UE.
+     */
     @XmlElement
     private ArrayList<Matiere> matieres;
 
-    public UE () {}
+    /**
+     * Constructeur par défaut de la classe.
+     */
+    public UE () {
     
-    /**
-     * @return the idUE
-     */
-    public int getIdUE() {
-        return idUE;
-    }
-
-    /**
-     * @param idUE the idUE to set
-     */
-    public void setIdUE(int idUE) {
-        this.idUE = idUE;
-    }
-
-    /**
-     * @return the nom
-     */
-    public String getNom() {
-        return nom;
-    }
-
-    /**
-     * @param nom the nom to set
-     */
-    public void setNom(String nom) {
-        this.nom = nom;
-    }
-
-    /**
-     * @return the yearType
-     */
-    public String getYearType() {
-        return yearType;
-    }
-
-    /**
-     * @param yearType the yearType to set
-     */
-    public void setYearType(String yearType) {
-        this.yearType = yearType;
     }
     
     /**
-     * @param matiere
-     * @return True si l'ajout c'est bien déroulé
+     * Méthode permettant d'ajouter une matière à l'UE.
+     * 
+     * @param matiere La matière à ajouter.
+     * 
+     * @return <b>true</b> si l'ajout s'est bien déroulé.
+     * <b>false</b> sinon.
      */
     public boolean addMatiere(Matiere matiere){
-        if(this.matieres == null)
+        if(this.matieres == null) {
             this.matieres = new ArrayList<>();
+        }
         
         return this.matieres.add(matiere);
     }
     
+    /* Getters. */
+    
+    public int getIdUE() {
+        return idUE;
+    }
+    
+    public String getNom() {
+        return nom;
+    }
+    
+    public String getYearType() {
+        return yearType;
+    }
+    
+    /* Setters. */
+
+    public void setIdUE(int idUE) {
+        this.idUE = idUE;
+    }
+    
+    public void setNom(String nom) {
+        this.nom = nom;
+    }
+
+    public void setYearType(String yearType) {
+        this.yearType = yearType;
+    }
 }

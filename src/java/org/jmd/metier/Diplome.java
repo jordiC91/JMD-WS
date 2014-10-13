@@ -1,50 +1,49 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package org.jmd.metier;
 
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
- *
- * @author yoyito
+ * Classe représentant un diplôme.
+ * 
+ * @author jordi charpentier - yoann vanhoeserlande
  */
 @XmlRootElement
 public class Diplome {
+    
+    /**
+     * L'identifiant du diplôme.
+     */
     private int idDiplome;
+    
+    /**
+     * Le nom du diplôme.
+     */
     private String nom;
     
-    public Diplome(){}
-
     /**
-     * @return the idDiplome
+     * Constructeur par défaut de la classe.
      */
+    public Diplome() {
+    
+    }
+    
+    /* Getters. */
+
     public int getIdDiplome() {
         return idDiplome;
     }
 
-    /**
-     * @param idDiplome the idDiplome to set
-     */
+    public String getNom() {
+        return nom;
+    }
+    
+    /* Setters. */
+
     public void setIdDiplome(int idDiplome) {
         this.idDiplome = idDiplome;
     }
 
-    /**
-     * @return the nom
-     */
-    public String getNom() {
-        return nom;
-    }
-
-    /**
-     * @param nom the nom to set
-     */
     public void setNom(String nom) {
         this.nom = nom;
-    }
-    
-    
+    } 
 }
