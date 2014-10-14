@@ -21,8 +21,15 @@ import org.jmd.*;
 @Path("admin")
 public class AdminService {
     
+    /**
+     * Objet représentant une connexion à la base de données de 
+     * l'application.
+     */
     private Connection connexion;
  
+    /**
+     * Constructeur par défaut de la classe.
+     */
     public AdminService() {
         
     }
@@ -40,6 +47,7 @@ public class AdminService {
      * @return 2 possibilités :
      * - Un code HTTP 200 si les identifiants sont bons.
      * - Un code HTTP 401 si les identifiants n'étaient pas bons.
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @POST
     @Path("login")
@@ -70,6 +78,8 @@ public class AdminService {
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            return Response.status(500).build();
         }
         
         return Response.status(401).build();
@@ -111,6 +121,13 @@ public class AdminService {
         return sb.toString();
     }
     
+    /**
+     * Méthode permettant d'envoyer un mail.
+     * 
+     * @param subject Le sujet du mai.
+     * @param text Le contenu du mail.
+     * @param to Le destinataire du mail.
+     */
     private void sendMail(String subject, String text, String to) {
         Properties properties = System.getProperties();
         properties.put("mail.smtp.user", "jaimondiplome@gmail.com");
@@ -127,7 +144,7 @@ public class AdminService {
             new javax.mail.Authenticator() {
                 @Override
                 protected PasswordAuthentication getPasswordAuthentication() {
-                    return new PasswordAuthentication(Constantes.EMAIL_JMD, "gkc19iregpt3qir");
+                    return new PasswordAuthentication(Constantes.EMAIL_JMD, Constantes.PASSWORD_JMD);
                 }  
             }
         );
@@ -156,7 +173,7 @@ public class AdminService {
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande "existe".
      * - Un code HTTP 503 si une erreur de type SQL ou pendant l'envoi du mail arrive.
-     * - Un code HTTP 403 si l'utilisateur spécifié n'existe pas.
+     * - Un code HTTP 404 si l'utilisateur spécifié n'existe pas.
      */
     @Path("passwordOublie")
     @GET
@@ -171,7 +188,7 @@ public class AdminService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * FROM administrateur WHERE (pseudo ='" + pseudo + "')");
+            ResultSet results = stmt.executeQuery("SELECT * FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
             
             String emailAdmin = "";
             
@@ -213,7 +230,7 @@ public class AdminService {
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande "existe" et que
      * l'annulation a bien été faite.
      * - Un code HTTP 503 si une erreur de type SQL ou pendant l'envoi du mail arrive.
-     * - Un code HTTP 403 si aucune demande n'existe pour l'utilisateur.
+     * - Un code HTTP 404 si aucune demande n'existe pour l'utilisateur.
      */
     @Path("cancelResetRequest")
     @GET
@@ -229,7 +246,7 @@ public class AdminService {
             int rows = stmt.executeUpdate("DELETE FROM CODE_REINIT_MDP WHERE (PSEUDO = '" + pseudo + "')");
         
             if (rows == 0) {
-                return Response.status(404).entity("Aucune demande trouvée.").build();
+                return Response.status(404).entity("NO_REQUEST_FOUND").build();
             }
         } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
@@ -237,7 +254,7 @@ public class AdminService {
             return Response.status(503).build();
         }
             
-        return Response.status(200).entity("Demande supprimée.").build();
+        return Response.status(200).entity("La demande de reset de mot de passe a bien été supprimée.").build();
     }
     
     /**
@@ -273,7 +290,11 @@ public class AdminService {
      * @param pseudo Le pseudo de la personne ayant fait la demande.
      * @param code Le code généré lors de la première étape.
      * 
-     * @return 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande "existe" et que
+     * la réinitialisation a bien été faite.
+     * - Un code HTTP 500 si une erreur de type SQL arrive.
+     * - Un code HTTP 404 si aucune demande n'existe pour l'utilisateur.
      */
     @Path("resetPassword")
     @GET
@@ -311,7 +332,7 @@ public class AdminService {
             }
             
             if (!wasFound) {
-                return Response.status(404).entity("Aucune demande trouvée.").build();
+                return Response.status(404).entity("NO_REQU").build();
             } else {
                 String newMdp = generateRandomCode();
                 
@@ -331,7 +352,7 @@ public class AdminService {
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
             
-            return Response.status(503).build();
+            return Response.status(500).build();
         }
         
         return Response.status(200).build();

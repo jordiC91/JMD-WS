@@ -18,4 +18,10 @@ public class Constantes {
      * Email de l'application utilisé lors des envois de mail.
      */
     public static String EMAIL_JMD = "jaimondiplome@gmail.com";
+    
+    /**
+     * Mot de passe du compte mail pour les envois.
+     * <b>Attention</b> : stocké en clair.
+     */
+    public static String PASSWORD_JMD = "gkc19iregpt3qir";
 }

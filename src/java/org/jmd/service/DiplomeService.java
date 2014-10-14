@@ -5,31 +5,53 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.core.*;
 import org.jmd.SQLUtils;
 import org.jmd.metier.Diplome;
 
+/**
+ * Service web gérant les diplômes (création / suppression / recherche / ...).
+ *
+ * @author jordi charpentier - yoann vanhoeserlande
+ */
 @Path("diplome")
 public class DiplomeService {
     
+    /**
+     * Objet représentant une connexion à la base de données de 
+     * l'application.
+     */
     private Connection connexion;
     
+    /**
+     * Constructeur par défaut de la classe.
+     */
     public DiplomeService() {
         
     }
     
+    /**
+     * Méthode permettant de créer un diplôme.
+     * 
+     * @param nom Le nom du diplôme à créer.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
+     * connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 403 si le diplôme à créer existe déjà en base.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
     @PUT
     public Response insertDiplome(
             @QueryParam("nom")
                     String nom,
             @Context
-                    HttpServletRequest request,
-            @Context
-                    ServletContext sContext) {
+                    HttpServletRequest request) {
         
         if (request.getSession(false) != null) {
             if (connexion == null) {
@@ -38,12 +60,12 @@ public class DiplomeService {
             
             try {
                 Statement stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO diplome (nom) VALUES ('" + nom + "')");
+                stmt.execute("INSERT INTO DIPLOME (NOM) VALUES ('" + nom + "')");
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 
-                if(ex instanceof MySQLIntegrityConstraintViolationException){
+                if (ex instanceof MySQLIntegrityConstraintViolationException){
                     return Response.status(403).entity("DUPLICATE_ENTRY").build();
                 }
                 
@@ -56,6 +78,19 @@ public class DiplomeService {
         }
     }
     
+    /**
+     * Méthode permettant de supprimer un diplôme.
+     * 
+     * @param id L'identifiant du diplôme à supprimer.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
+     * connecté (donc autorisé) et si la suppression s'est bien faite.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
     @DELETE
     public Response supprimer(
             @QueryParam("id")
@@ -70,10 +105,56 @@ public class DiplomeService {
             
             try {
                 try (Statement stmt = connexion.createStatement()) {
+                    ResultSet results = stmt.executeQuery("SELECT * FROM ANNEE WHERE (ID_DIPLOME = " + id + ")");
+                    ResultSet results2 = null;
+                    ResultSet results3 = null;
+                    
+                    ArrayList<Integer> idAnneeList = new ArrayList<>();
+                    ArrayList<Integer> idUEList = new ArrayList<>();
+                    ArrayList<Integer> idMatiereList = new ArrayList<>();
+                    
+                    boolean hasResults = false;
+                    
+                    while (results.next()) {
+                        hasResults = true;
+                        idAnneeList.add(results.getInt("ID"));
+                        
+                        results2 = stmt.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + results.getInt("ID") + ")");
+                        
+                        while (results2.next()) {
+                            idUEList.add(results.getInt("ID"));
+                        
+                            results3 = stmt.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results.getInt("ID") + ")");
+                            
+                            while (results3.next()) {
+                                idMatiereList.add(results.getInt("ID"));
+                            }
+                        }
+                    }
+                    
+                    if (!hasResults) {
+                        return Response.status(404).entity("ID_NOT_FOUND").build();
+                    }
+                    
+                    // Suppression des matières du diplôme.
+                    for (int i = 0; i < idMatiereList.size(); i++) {
+                        stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = "+idMatiereList.get(i)+")");
+                    }
+                    
+                    // Suppression des UE du diplôme.
+                    for (int i = 0; i < idUEList.size(); i++) {
+                        stmt.executeUpdate("DELETE FROM UE WHERE (ID = "+idUEList.get(i)+")");
+                    }
+                    
+                    // Suppression des années du diplôme.
+                    for (int i = 0; i < idAnneeList.size(); i++) {
+                        stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = "+idAnneeList.get(i)+")");
+                    }
+                    
+                    // Suppression du diplôme.
                     stmt.executeUpdate("DELETE FROM DIPLOME WHERE (ID = "+id+")");
                     
-                    // A FAIRE DELETE EN PROFONDEUR
-                    
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -87,6 +168,12 @@ public class DiplomeService {
         }
     }
     
+    /**
+     * Méthode permettant de récupérer tout les diplômes présents en base.
+     * 
+     * @return Une liste (<i>ArrayList</i>) comprenant l'ensemble des diplômes
+     * présents en base.
+     */
     @GET
     @Path("getAll")
     @Produces("application/json")
@@ -121,10 +208,21 @@ public class DiplomeService {
         //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
     }
     
+    /**
+     * Méthode permettant de chercher un diplôme à partir de son nom.
+     * 
+     * @param nom Le nom du diplôme à chercher.
+     * 
+     * @return Une liste (<i>ArrayList</i>) de diplômes dont le nom "est comme"
+     * celui recherché.
+     * 
+     * @see Opérateur LIKE en SQL.
+     */
     @GET
     @Path("search")
     public ArrayList<Diplome> search(
-            @QueryParam ("nom") String nom){
+            @QueryParam ("nom") 
+                    String nom){
         
         ArrayList<Diplome> diplomes = null;
         
@@ -154,6 +252,10 @@ public class DiplomeService {
         return diplomes;
     }
     
+    /**
+     * Méthode exécutée avant la fin de vie du service.
+     * La connexion à la base est fermée.
+     */
     @PreDestroy
     public void onDestroy() {
         if (connexion != null) {

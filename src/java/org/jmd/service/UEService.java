@@ -11,15 +11,22 @@ import org.jmd.SQLUtils;
 import org.jmd.metier.UE;
 
 /**
- * Service web gérant les UE (création / suppression / ...).
+ * Service web gérant les UE (création / suppression / recherche / ...).
  *
  * @author jordi charpentier - yoann vanhoeserlande
  */
 @Path("ue")
 public class UEService {
     
+    /**
+     * Objet représentant une connexion à la base de données de 
+     * l'application.
+     */
     private Connection connexion;
     
+    /**
+     * Constructeur par défaut de la classe.
+     */
     public UEService() {
         
     }
@@ -78,7 +85,7 @@ public class UEService {
      *
      * @return 2 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
-     * connecté (donc autorisé).
+     * connecté (donc autorisé) et si la suppression s'est bien faite.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
      */
@@ -89,7 +96,7 @@ public class UEService {
             @Context
                     HttpServletRequest request) {
         
-        if (request.getSession().getAttribute("pseudo") != null) {
+        if (request.getSession(false) != null) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
@@ -113,12 +120,18 @@ public class UEService {
         }
     }
     
+    /**
+     * Méthode permettant de récupérer l'ensemble des UE que comprend une année.
+     * 
+     * @param idAnnee L'identifiant de l'année.
+     * 
+     * @return L'ensemble des UE que comprend l'année spécifiée.
+     */
     @GET
     @Path("getAllUEOfAnnee")
     @Produces("application/json")
-    public ArrayList<UE> getAllUEOfAnnee(
-            @QueryParam("idAnnee")
-            int idAnnee) {
+    public ArrayList<UE> getAllUEOfAnnee(@QueryParam("idAnnee")
+                                         int idAnnee) {
         
         ArrayList<UE> UEs = new ArrayList<>();
         
@@ -152,6 +165,15 @@ public class UEService {
         return UEs;
     }
     
+    /**
+     * Méthode permettant de récupérer les UE que comprend une année selon le
+     * découpage spécifié en paramète (UE / TRIMESTRE / NULL).
+     * 
+     * @param idAnnee L'identifiant de l'année.
+     * @param yearType Le filtre (type de l'année) spécifié.
+     * 
+     * @return La liste des UEs que comprend l'année pendant le spécifiée.
+     */
     @GET
     @Path("getAllUEOfAnneeByYearType")
     @Produces("application/json")

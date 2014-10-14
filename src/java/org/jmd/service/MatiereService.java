@@ -11,15 +11,22 @@ import org.jmd.SQLUtils;
 import org.jmd.metier.Matiere;
 
 /**
- * Service web g�rant les mati�res (cr�ation / suppression / ...).
+ * Service web gérant les matières (création / suppression / recherche / ...).
  *
  * @author jordi charpentier - yoann vanhoeserlande
  */
 @Path("matiere")
 public class MatiereService {
     
+    /**
+     * Objet représentant une connexion à la base de données de 
+     * l'application.
+     */
     private Connection connexion;
     
+    /**
+     * Constructeur par défaut de la classe.
+     */
     public MatiereService() {
         
     }
@@ -77,16 +84,17 @@ public class MatiereService {
      * @param id L'identifiant de la matière à supprimer.
      * @param request La requête HTTP ayant appelêe le service.
      *
-     * @return 2 possibilités :
+     * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
-     * connecté (donc autorisé).
+     * connecté (donc autorisé) et si la suppression s'est bien faite.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit
      */
     @DELETE
     public Response supprimer(
             @QueryParam("id")
-            String id,
+                    String id,
             @Context
                     HttpServletRequest request) {
         

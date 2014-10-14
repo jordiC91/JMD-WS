@@ -1,44 +1,56 @@
-/*
-* To change this license header, choose License Headers in Project Properties.
-* To change this template file, choose Tools | Templates
-* and open the template in the editor.
-*/
 package org.jmd.service;
 
 import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.sql.Statement;
+import java.sql.*;
 import java.util.ArrayList;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.ServletContext;
 import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.DELETE;
-import javax.ws.rs.GET;
-import javax.ws.rs.PUT;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
-import javax.ws.rs.QueryParam;
-import javax.ws.rs.core.Context;
-import javax.ws.rs.core.Response;
+import javax.ws.rs.*;
+import javax.ws.rs.core.*;
 import org.jmd.SQLUtils;
-import org.jmd.metier.Annee;
-import org.jmd.metier.Matiere;
-import org.jmd.metier.UE;
+import org.jmd.metier.*;
 
 /**
+ * Service web gérant les années (création / suppression / recherche / ...).
  *
- * @author yoyito
+ * @author jordi charpentier - yoann vanhoeserlande
  */
 @Path("annee")
 public class AnneeService {
+    
+    /**
+     * Objet représentant une connexion à la base de données de 
+     * l'application.
+     */
     private Connection connexion;
     
-    public AnneeService() {}
+    /**
+     * Constructeur par défaut de la classe.
+     */
+    public AnneeService() {
     
+    }
+    
+    /**
+     * Méthode permettant de créer une année.
+     * 
+     * @param nom Le nom de l'année.
+     * @param decoupage Le découpage de l'année (UE / TRIMESTRE / NULL).
+     * @param isLastYear Booléen permettant de savoir si l'année est la dernière
+     * du diplôme.
+     * @param idEtablissement L'identifiant de l'établissement de l'année.
+     * @param idDiplome L'identifiant du diplôme dont fait partie l'année.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
+     * connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 403 si l'année à créer existe déjà en base.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
     @PUT
     public Response creer(
             @QueryParam("nom")
@@ -79,6 +91,19 @@ public class AnneeService {
         }
     }
     
+    /**
+     * Méthode permettant de supprimer une année.
+     * 
+     * @param id L'identifiant de l'année à supprimer.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
+     * connecté (donc autorisé) et si la suppression s'est bien faite.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
     @DELETE
     public Response supprimer(
             @QueryParam("id")
@@ -93,59 +118,35 @@ public class AnneeService {
             
             try {
                 try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM DIPLOME WHERE (ID = "+id+");");
+                    stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = "+id+");");
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 
                 return Response.status(500).build();
             }
+            
             return Response.status(200).build();
         } else {
             return Response.status(401).build();
         }
     }
     
-    @GET
-    @Path("getAll")
-    @Produces("application/json")
-    public ArrayList<Annee> getAll() {
-        
-        ArrayList<Annee> annees = null;
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
-        
-        try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * FROM diplome ORDER BY id ASC;");
-            annees = new ArrayList<>();
-            Annee a = null;
-            
-            while (results.next()) {
-                a = new Annee();
-                a.setIdDiplome(results.getInt("ID"));
-                a.setNom(results.getString("NOM"));
-                annees.add(a);
-            }
-            
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return annees;
-        //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
-    }
-    
+    /**
+     * Méthode permettant de récupérer une année complète (UE / MATIERE).
+     * 
+     * @param idAnnee L'identifiant de l'année souhaitée.
+     * 
+     * @return Un objet "Année" contenant l'ensemble des données présentes en 
+     * base pour l'année spécifiée.
+     */
     @GET
     @Path("getCompleteYear")
     @Produces("application/json")
     public Annee getCompleteYear (
             @QueryParam("idAnnee")
                     String idAnnee) {
+        
         Annee a = null;
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
@@ -169,10 +170,9 @@ public class AnneeService {
                 a.setNomEtablissement(results1.getString("ETABLISSEMENT.NOM"));
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
-                
                 // Récupération des UEs pour une année
                 results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
-                System.out.print("Query2 : SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
+
                 while(results2.next()){
                     ue = new UE();
                     ue.setIdUE(results2.getInt("ID"));
@@ -181,7 +181,7 @@ public class AnneeService {
                     
                     // Récupération des matières pour une UE
                     results3 = connexion.createStatement().executeQuery("SELECT * FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
-                    System.out.print("SELECT * FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
+ 
                     while(results3.next()){
                         matiere = new Matiere();
                         matiere.setCoefficient(results3.getFloat("COEFFICIENT"));
@@ -190,12 +190,12 @@ public class AnneeService {
                         matiere.setNom(results3.getString("NOM"));
                         ue.addMatiere(matiere);
                     }
+                    
                     results3.close();
                     a.addUE(ue);
-                    
                 }
-                results2.close();
                 
+                results2.close();
             }
             
             results1.close();
@@ -206,9 +206,12 @@ public class AnneeService {
         
         return a;
         //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
-        
     }
     
+    /**
+     * Méthode exécutée avant la fin de vie du service.
+     * La connexion à la base est fermée.
+     */
     @PreDestroy
     public void onDestroy() {
         if (connexion != null) {
