@@ -1,5 +1,6 @@
 package org.jmd.service;
 
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.sql.*;
@@ -298,10 +299,11 @@ public class AdminService {
      */
     @Path("resetPassword")
     @GET
-    public Response resetPassword(@QueryParam("pseudo")
-                                  String pseudo,
-                                  @QueryParam("code")
-                                  String code) {
+    public Response resetPassword(
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("code")
+                    String code) {
         
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
@@ -352,6 +354,97 @@ public class AdminService {
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
             
+            return Response.status(500).build();
+        }
+        
+        return Response.status(200).build();
+    }
+    
+    /**
+     * Méthode permettant de nommer un administrateur.
+     * 
+     * @param idAdmin L'identifiant de l'utilisateur à nommer administrateur.
+     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
+     * connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la nomination.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    public Response nominateAdmin(
+            @QueryParam("idAdmin")
+                    int idAdmin,
+            @Context 
+                    HttpServletRequest request) {
+        
+        if (request.getSession(false) != null) {
+            if (connexion == null) {
+                connexion = SQLUtils.getConnexion();
+            }
+            
+            try {
+                Statement stmt = connexion.createStatement();
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET EST_VALIDE = 1 WHERE ID = " + idAdmin + ";");
+                stmt.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return Response.status(500).build();
+            }
+            
+            return Response.status(200).build();
+        } else {
+            return Response.status(401).build();
+        }
+    }
+    
+    /**
+     * Méthode permettant à un utilisateur de s'inscrire pour devenir administrateur.
+     * 
+     * @param nom Le nom de l'administrateur.
+     * @param prenom Le prénom de l'administrateur.
+     * @param email L'email de l'administrateur.
+     * @param pseudo Le pseudo de l'administrateur.
+     * @param password Le mot de passe de l'administrateur. Il est envoyé par 
+     * l'utilisateur s'inscrivant en SHA-256.
+     * 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'inscription est OK.
+     * - Un code HTTP 403 si les informations entrées (pseudo, entre autre)
+     * existent déjà en base.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @Path("subscription")
+    @GET
+    public Response subscription(
+            @QueryParam("nom")
+                    String nom,
+            @QueryParam("prenom")
+                    String prenom,
+            @QueryParam("email")
+                    String email,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("password")
+                    String password) {
+        
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            stmt.execute("INSERT INTO ADMINISTRATEUR (PSEUDO, NOM, PRENOM, PASSWORD, EMAIL, EST_VALIDE) VALUES ('" + pseudo + "', '" + nom + "', '" + prenom + "', '" + password + "', '" + email + "', 0);");
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                
+            if(ex instanceof MySQLIntegrityConstraintViolationException){
+                return Response.status(403).entity("DUPLICATE_ENTRY").build();
+            }
+                
             return Response.status(500).build();
         }
         
