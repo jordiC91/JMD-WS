@@ -52,9 +52,9 @@ public class AdminService {
      */
     @POST
     @Path("login")
-    public Response login(@FormParam("username")
+    public Response login(@QueryParam("username")
                           String pseudo,
-                          @FormParam("password")
+                          @QueryParam("password")
                           String password,
                           @Context 
                           HttpServletRequest request) {
@@ -63,19 +63,16 @@ public class AdminService {
             connexion = SQLUtils.getConnexion();
         }
         
-        System.out.println(pseudo + "\\" + password);
-        
         try {
             Statement stmt = connexion.createStatement();  
             ResultSet results = stmt.executeQuery("SELECT * FROM administrateur WHERE (pseudo ='" + pseudo + "') AND (password ='" + password + "')");
-            System.out.println("SELECT * FROM administrateur WHERE (pseudo ='" + pseudo + "') AND (password ='" + password + "')");
             
-            while (results.next()) { 
-                System.out.println(results.getString("PSEUDO"));
-                
-                request.getSession(true);
+            while (results.next()) {
+                if (results.getString("PSEUDO") != null) {                    
+                    request.getSession(true);
                     
-                return Response.status(200).build();
+                    return Response.status(200).build();
+                }
             }
             
             results.close();
