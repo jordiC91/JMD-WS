@@ -52,9 +52,9 @@ public class AdminService {
      */
     @POST
     @Path("login")
-    public Response login(@QueryParam("username")
+    public Response login(@FormParam("username")
                           String pseudo,
-                          @QueryParam("password")
+                          @FormParam("password")
                           String password,
                           @Context 
                           HttpServletRequest request) {
