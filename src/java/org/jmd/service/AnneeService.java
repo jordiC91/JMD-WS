@@ -20,7 +20,7 @@ import org.jmd.metier.*;
 public class AnneeService {
     
     /**
-     * Objet représentant une connexion à la base de données de 
+     * Objet représentant une connexion à la base de données de
      * l'application.
      */
     private Connection connexion;
@@ -29,12 +29,12 @@ public class AnneeService {
      * Constructeur par défaut de la classe.
      */
     public AnneeService() {
-    
+        
     }
     
     /**
      * Méthode permettant de créer une année.
-     * 
+     *
      * @param nom Le nom de l'année.
      * @param decoupage Le découpage de l'année (UE / TRIMESTRE / NULL).
      * @param isLastYear Booléen permettant de savoir si l'année est la dernière
@@ -42,7 +42,7 @@ public class AnneeService {
      * @param idEtablissement L'identifiant de l'établissement de l'année.
      * @param idDiplome L'identifiant du diplôme dont fait partie l'année.
      * @param request La requête HTTP ayant appelée le service.
-     * 
+     *
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
      * connecté (donc autorisé).
@@ -93,10 +93,10 @@ public class AnneeService {
     
     /**
      * Méthode permettant de supprimer une année.
-     * 
+     *
      * @param id L'identifiant de l'année à supprimer.
      * @param request La requête HTTP ayant appelée le service.
-     * 
+     *
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
      * connecté (donc autorisé) et si la suppression s'est bien faite.
@@ -134,10 +134,10 @@ public class AnneeService {
     
     /**
      * Méthode permettant de récupérer une année complète (UE / MATIERE).
-     * 
+     *
      * @param idAnnee L'identifiant de l'année souhaitée.
-     * 
-     * @return Un objet "Année" contenant l'ensemble des données présentes en 
+     *
+     * @return Un objet "Année" contenant l'ensemble des données présentes en
      * base pour l'année spécifiée.
      */
     @GET
@@ -171,8 +171,8 @@ public class AnneeService {
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
                 // Récupération des UEs pour une année
-                results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
-
+                results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
+                
                 while(results2.next()){
                     ue = new UE();
                     ue.setIdUE(results2.getInt("ID"));
@@ -181,7 +181,7 @@ public class AnneeService {
                     
                     // Récupération des matières pour une UE
                     results3 = connexion.createStatement().executeQuery("SELECT * FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
- 
+                    
                     while(results3.next()){
                         matiere = new Matiere();
                         matiere.setCoefficient(results3.getFloat("COEFFICIENT"));
@@ -205,6 +205,55 @@ public class AnneeService {
         }
         
         return a;
+        //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
+    }
+    
+    /**
+     * Méthode permettant de récupérer la liste des années en fonction d'un diplôme et d'un établissement.
+     *
+     * @param idDiplome L'identifiant du diplôme
+     * @param idEtablissement L'identifiant de l'établissement
+     *
+     * @return Une liste d'année de la recherche faites sur le diplôme et sur l'établissement
+     * base pour l'année spécifiée.
+     */
+    @GET
+    @Path("getAnnees")
+    @Produces("application/json")
+    public ArrayList<Annee> getAnnees (
+            @QueryParam("idDiplome")
+                    String idDiplome,
+            @QueryParam("idEtablissement")
+                    String idEtablissement) {
+        
+        ArrayList<Annee> annees = new ArrayList<>();
+        
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            ResultSet results1 = stmt.executeQuery("SELECT * FROM ANNEE WHERE ID_DIPLOME="+idDiplome+" AND ID_ETABLISSEMENT="+idEtablissement+";");
+            Annee a = null;
+            
+            while (results1.next()) {
+                a = new Annee();
+                a.setIdAnnee(results1.getInt("ID"));
+                a.setNom(results1.getString("NOM"));
+                a.setIdEtablissement(results1.getInt("ID_ETABLISSEMENT"));
+                a.setIdDiplome(results1.getInt("ID_DIPLOME"));
+                a.setIsLastYear(results1.getBoolean("IS_LAST_YEAR"));
+                annees.add(a);
+            }
+            
+            results1.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return annees;
         //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
     }
     
