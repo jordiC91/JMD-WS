@@ -171,7 +171,7 @@ public class AnneeService {
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
                 // Récupération des UEs pour une année
-                results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANN="+a.getIdAnnee()+";");
+                results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
 
                 while(results2.next()){
                     ue = new UE();
