@@ -8,6 +8,7 @@ import javax.annotation.PreDestroy;
 import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import org.jmd.AdminUtils;
 import org.jmd.SQLUtils;
 import org.jmd.metier.Diplome;
 
@@ -36,7 +37,10 @@ public class DiplomeService {
      * Méthode permettant de créer un diplôme.
      * 
      * @param nom Le nom du diplôme à créer.
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'utilisateur.
+     * @param token Le token de l'utilisateur.
+     * @param timestamp Le timestamp de l'utilisateur.
      * 
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
@@ -50,14 +54,18 @@ public class DiplomeService {
     public Response insertDiplome(
             @QueryParam("nom")
                     String nom,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO DIPLOME (NOM) VALUES ('" + nom + "')");
@@ -82,7 +90,10 @@ public class DiplomeService {
      * Méthode permettant de supprimer un diplôme.
      * 
      * @param id L'identifiant du diplôme à supprimer.
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'utilisateur.
+     * @param token Le token de l'utilisateur.
+     * @param timestamp Le timestamp de l'utilisateur.
      * 
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
@@ -95,10 +106,14 @@ public class DiplomeService {
     public Response supprimer(
             @QueryParam("id")
                     String id,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession().getAttribute("pseudo") != null) {
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             if (connexion == null) {
                 connexion = SQLUtils.getConnexion();
             }
@@ -132,23 +147,34 @@ public class DiplomeService {
                         }
                     }
                     
+                    if (results3 != null) {
+                        results3.close();
+                    }
+                    
+                    if (results2 != null) {
+                        results2.close();
+                    }
+                    
+                    results.close();
+                    
+                    // S'il n'y a pas de résultats pour l'id diplôme spécifié.
                     if (!hasResults) {
                         return Response.status(404).entity("ID_NOT_FOUND").build();
                     }
                     
                     // Suppression des matières du diplôme.
-                    for (int i = 0; i < idMatiereList.size(); i++) {
-                        stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = "+idMatiereList.get(i)+")");
+                    for (Integer idMatiereList1 : idMatiereList) {
+                        stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereList1 + ")");
                     }
                     
                     // Suppression des UE du diplôme.
-                    for (int i = 0; i < idUEList.size(); i++) {
-                        stmt.executeUpdate("DELETE FROM UE WHERE (ID = "+idUEList.get(i)+")");
+                    for (Integer idUEList1 : idUEList) {
+                        stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEList1 + ")");
                     }
                     
                     // Suppression des années du diplôme.
-                    for (int i = 0; i < idAnneeList.size(); i++) {
-                        stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = "+idAnneeList.get(i)+")");
+                    for (Integer idAnneeList1 : idAnneeList) {
+                        stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + idAnneeList1 + ")");
                     }
                     
                     // Suppression du diplôme.
@@ -205,7 +231,6 @@ public class DiplomeService {
         }
         
         return diplomes;
-        //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
     }
     
     /**
