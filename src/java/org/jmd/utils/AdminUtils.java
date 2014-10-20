@@ -1,7 +1,8 @@
-package org.jmd;
+package org.jmd.utils;
 
 import java.sql.*;
 import java.util.logging.*;
+import org.jmd.Constantes;
 import org.jmd.service.DiplomeService;
 
 /**
@@ -92,9 +93,9 @@ public class AdminUtils {
             while (results.next()) {    
                 long timestamp = results.getLong("TIMESTAMP_USER");
                 
-                if ((timestampACheck - timestamp) > Constantes.TIMESTAMP_LIMIT) {
+                if ((timestampACheck - timestamp) < Constantes.TIMESTAMP_LIMIT) {
                     // Mise à jour du timestamp.
-                    stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP = "+ timestampACheck +" WHERE PSEUDO = '" + pseudo + "';");
+                    stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = "+ timestampACheck +" WHERE PSEUDO = '" + pseudo + "';");
                     
                     isOK = true;
                     break;

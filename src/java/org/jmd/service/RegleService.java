@@ -1,24 +1,19 @@
 package org.jmd.service;
 
-import org.jmd.utils.AdminUtils;
-import org.jmd.utils.SQLUtils;
-import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Response;
-import org.jmd.*;
-import org.jmd.metier.Etablissement;
+import javax.ws.rs.core.*;
+import org.jmd.utils.*;
 
 /**
- * Service web gérant les établissements (création / suppression / recherche / ...).
+ * Service web gérant les règles (création / suppression / recherche / ...).
  *
  * @author jordi charpentier - yoann vanhoeserlande
  */
-@Path("etablissement")
-public class EtablissementService {
+@Path("regle")
+public class RegleService {
     
     /**
      * Objet représentant une connexion à la base de données de 
@@ -29,35 +24,46 @@ public class EtablissementService {
     /**
      * Constructeur par défaut de la classe.
      */
-    public EtablissementService() {
+    public RegleService() {
         
     }
     
     /**
-     * Méthode permettant de créer un établissement.
+     * Méthode permettant de créer une règle.
      * 
-     * @param nom Le nom de l'établissement.
-     * @param ville La ville de l'établissement.
+     * @param regle La règle (0 ou 1, NB_OPT_MINI ou NOTE_MINIMALE).
+     * @param operateur L'opérateur de la règle : >, <, <=, ...
+     * @param valeur La valeur de la règle.
+     * @param idAnnee L'identifiant de l'année rattachée à la règle.
+     * @param idUE L'identifiant de l'UE rattachée à la règle.
+     * @param idMatiere L'identifiant de la matière rattachée à la règle.
      * 
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
      * 
-     * @return 4 possibilités :
+     * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
      * connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
-     * - Un code HTTP 403 si l'établissement à créer existe déjà en base.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
-    public Response creer(  
-            @QueryParam("nom")
-                    String nom,
-            @QueryParam("ville")
-                    String ville,
+    public Response creer(
+            @QueryParam("regle")
+                    int regle,
+            @QueryParam("operateur")
+                    int operateur,
+            @QueryParam("valeur")
+                    int valeur,
+            @QueryParam("idAnnee")
+                    int idAnnee,
+            @QueryParam("idUE")
+                    int idUE,
+            @QueryParam("idMatiere")
+                    int idMatiere,
             @QueryParam("pseudo")
                     String pseudo,
             @QueryParam("token")
@@ -72,14 +78,10 @@ public class EtablissementService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO ETABLISSEMENT (nom, ville) VALUES ('" + nom + "', '" + ville + "')");
+                stmt.execute("INSERT INTO REGLE (REGLE, ID_ANNEE, ID_UE, ID_MATIERE, OPERATEUR, VALEUR) VALUES (" + regle + "," + idAnnee + "," + idUE + "," + idMatiere + ", " + operateur + ", " + valeur + ");");
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                
-                if(ex instanceof MySQLIntegrityConstraintViolationException){
-                    return Response.status(403).entity("DUPLICATE_ENTRY").build();
-                }
+                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
                 
                 return Response.status(500).build();
             }
@@ -91,21 +93,20 @@ public class EtablissementService {
     }
     
     /**
-     * Méthode permettant de supprimer un établissement.
-     * 
-     * @param id L'identifiant de l'établissement à supprimer.
+     * Méthode permettant de supprimer une règle.
+     *
+     * @param id L'identifiant de la règle à supprimer.
      * 
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
-     * 
-     * @return 3 possibilités :
+     *
+     * @return 2 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
      * connecté (donc autorisé) et si la suppression s'est bien faite.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
-     * - Un code HTTP 500 si une erreur SQL se produit
      */
     @DELETE
     public Response supprimer(
@@ -121,14 +122,14 @@ public class EtablissementService {
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
         }
-          
+         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM ETABLISSEMENT WHERE (ID = " + id + ")");
+                    stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");                    
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
                 
                 return Response.status(500).build();
             }
@@ -137,49 +138,6 @@ public class EtablissementService {
         } else {
             return Response.status(401).build();
         }
-    }
-    
-    /**
-     * Méthode permettant de récupérer l'ensemble des établissements présents
-     * en base.
-     * 
-     * @return Une liste (<i>ArrayList</i> correspondant à l'ensemble des 
-     * établissements présents en base.
-     */
-    @GET
-    @Path("getAll")
-    @Produces("application/json")
-    public ArrayList<Etablissement> getAll() {
-        ArrayList<Etablissement> etablissements = new ArrayList<>();
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
-        
-        try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * " +
-                    "FROM ETABLISSEMENT " +
-                    "ORDER BY ID ASC");
-            
-            Etablissement etablissement = null;
-            
-            while (results.next()) {
-                etablissement = new Etablissement();
-                etablissement.setIdEtablissement(results.getInt("ID"));
-                etablissement.setNom(results.getString("NOM"));
-                etablissement.setVille(results.getString("VILLE"));
-                
-                etablissements.add(etablissement);
-            }
-            
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        
-        return etablissements;
     }
     
     /**
@@ -192,7 +150,7 @@ public class EtablissementService {
             try {
                 connexion.close();
             } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
     }

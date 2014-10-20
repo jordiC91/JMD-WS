@@ -1,12 +1,12 @@
 package org.jmd.service;
 
+import org.jmd.utils.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.*;
 import org.jmd.metier.Matiere;
 
 /**
@@ -43,11 +43,12 @@ public class MatiereService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
      *
-     * @return 2 possibilités :
+     * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
      * connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
     public Response creer(
@@ -73,10 +74,12 @@ public class MatiereService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, ISOPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
+                stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return Response.status(500).build();
             }
             
             return Response.status(200).build();

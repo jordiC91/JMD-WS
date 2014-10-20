@@ -6,8 +6,8 @@ import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.AdminUtils;
-import org.jmd.SQLUtils;
+import org.jmd.utils.AdminUtils;
+import org.jmd.utils.SQLUtils;
 import org.jmd.metier.UE;
 
 /**
@@ -48,6 +48,7 @@ public class UEService {
      * connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
     public Response creer(
@@ -56,7 +57,7 @@ public class UEService {
             @QueryParam("yearType")
                     String yearType,
             @QueryParam("idAnnee")
-                    String idAnnee,
+                    int idAnnee,
             @QueryParam("pseudo")
                     String pseudo,
             @QueryParam("token")
@@ -71,7 +72,7 @@ public class UEService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE) VALUES ('" + nom + ",'"+ yearType +"',"+idAnnee+");");
+                stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE) VALUES ('" + nom + "','"+ yearType +"',"+idAnnee+");");
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);

@@ -1,4 +1,4 @@
-package org.jmd;
+package org.jmd.utils;
 
 import java.sql.*;
 import java.util.logging.*;
@@ -31,7 +31,12 @@ public class SQLUtils {
         
         try {
             Class.forName ("com.mysql.jdbc.Driver").newInstance();
-            conn = DriverManager.getConnection(url, "root", "");
+            
+            // Glassfish Kimsufi
+            conn = DriverManager.getConnection(url, "jordi", "Ce^7;a#F0TO@(1kO0e9m");
+            
+            // Glassfish local
+            // conn = DriverManager.getConnection(url, "root", "");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             Logger.getLogger(SQLUtils.class.getName()).log(Level.SEVERE, null, ex);
         } 

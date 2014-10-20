@@ -1,14 +1,14 @@
 package org.jmd.service;
 
-import com.mysql.jdbc.exceptions.MySQLIntegrityConstraintViolationException;
+import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.AdminUtils;
-import org.jmd.SQLUtils;
+import org.jmd.utils.AdminUtils;
+import org.jmd.utils.SQLUtils;
 import org.jmd.metier.*;
 
 /**
