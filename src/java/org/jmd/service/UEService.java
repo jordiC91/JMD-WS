@@ -4,9 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import org.jmd.AdminUtils;
 import org.jmd.SQLUtils;
 import org.jmd.metier.UE;
 
@@ -36,8 +36,12 @@ public class UEService {
      *
      * @param nom Le nom de l'UE à créer.
      * @param yearType Type de l'année (NULL/SEMESTRE/TRIMESTRE)
-     * @param request La requête HTTP ayant appelée le service.
-     * @param idAnnee ID de l'année à laquelle l'UE appartient
+     * @param idAnnee ID de l'année à laquelle l'UE appartient.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 2 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
@@ -53,14 +57,18 @@ public class UEService {
                     String yearType,
             @QueryParam("idAnnee")
                     String idAnnee,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE) VALUES ('" + nom + ",'"+ yearType +"',"+idAnnee+");");
@@ -81,7 +89,11 @@ public class UEService {
      * Méthode permettant de supprimer une UE.
      *
      * @param id L'identifiant de l'UE à supprimer.
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 2 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
@@ -93,14 +105,18 @@ public class UEService {
     public Response supprimer(
             @QueryParam("id")
                     String id,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+         
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");

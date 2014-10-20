@@ -4,10 +4,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.SQLUtils;
+import org.jmd.*;
 import org.jmd.metier.Matiere;
 
 /**
@@ -38,7 +37,11 @@ public class MatiereService {
      * @param coefficient Le coefficient de la matière à créer.
      * @param isOption Si la matière à créer est une option ou non.
      * @param idUE ID de l'UE auquel appartient la matière
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 2 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
@@ -56,14 +59,18 @@ public class MatiereService {
                     boolean isOption,
             @QueryParam("idUE")
                     int idUE,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, ISOPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
@@ -82,7 +89,11 @@ public class MatiereService {
      * Méthode permettant de supprimer une matière.
      *
      * @param id L'identifiant de la matière à supprimer.
-     * @param request La requête HTTP ayant appelêe le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
@@ -95,14 +106,18 @@ public class MatiereService {
     public Response supprimer(
             @QueryParam("id")
                     String id,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");

@@ -5,11 +5,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
-import javax.ws.rs.core.Context;
 import javax.ws.rs.core.Response;
-import org.jmd.SQLUtils;
+import org.jmd.*;
 import org.jmd.metier.Etablissement;
 
 /**
@@ -38,7 +36,11 @@ public class EtablissementService {
      * 
      * @param nom Le nom de l'établissement.
      * @param ville La ville de l'établissement.
-     * @param request La requête ayant appelé le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      * 
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
@@ -54,14 +56,18 @@ public class EtablissementService {
                     String nom,
             @QueryParam("ville")
                     String ville,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO ETABLISSEMENT (nom, ville) VALUES ('" + nom + "', '" + ville + "')");
@@ -86,7 +92,11 @@ public class EtablissementService {
      * Méthode permettant de supprimer un établissement.
      * 
      * @param id L'identifiant de l'établissement à supprimer.
-     * @param request La requête ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      * 
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
@@ -99,14 +109,18 @@ public class EtablissementService {
     public Response supprimer(
             @QueryParam("id")
                     String id,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+          
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM ETABLISSEMENT WHERE (ID = " + id + ")");

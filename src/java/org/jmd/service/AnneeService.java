@@ -5,9 +5,9 @@ import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
-import javax.servlet.http.HttpServletRequest;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import org.jmd.AdminUtils;
 import org.jmd.SQLUtils;
 import org.jmd.metier.*;
 
@@ -41,7 +41,11 @@ public class AnneeService {
      * du diplôme.
      * @param idEtablissement L'identifiant de l'établissement de l'année.
      * @param idDiplome L'identifiant du diplôme dont fait partie l'année.
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
@@ -63,14 +67,18 @@ public class AnneeService {
                     String idEtablissement,
             @QueryParam("idDiplome")
                     String idDiplome,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+           
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO ANNEE (NOM,DECOUPAGE,IS_LAST_YEAR,ID_ETABLISSEMENT,ID_DIPLOME) VALUES ('" + nom + "','" + decoupage + "','" + isLastYear + "','" + idEtablissement + "','" + idDiplome + "');");
@@ -95,7 +103,11 @@ public class AnneeService {
      * Méthode permettant de supprimer une année.
      *
      * @param id L'identifiant de l'année à supprimer.
-     * @param request La requête HTTP ayant appelée le service.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
      *
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
@@ -108,20 +120,24 @@ public class AnneeService {
     public Response supprimer(
             @QueryParam("id")
                     String id,
-            @Context
-                    HttpServletRequest request) {
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
-        if (request.getSession(false) != null) {
-            if (connexion == null) {
-                connexion = SQLUtils.getConnexion();
-            }
-            
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = "+id+");");
                 }
             } catch (SQLException ex) {
-                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 
                 return Response.status(500).build();
             }
@@ -205,7 +221,6 @@ public class AnneeService {
         }
         
         return a;
-        //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
     }
     
     /**

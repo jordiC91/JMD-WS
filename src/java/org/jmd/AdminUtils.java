@@ -90,11 +90,16 @@ public class AdminUtils {
                                                   "WHERE (PSEUDO = '" + pseudo + "')");
                        
             while (results.next()) {    
-                long timestamp = results.getLong("TOKEN");
+                long timestamp = results.getLong("TIMESTAMP_USER");
                 
-                if (timestampACheck > timestamp) {
+                if ((timestampACheck - timestamp) > Constantes.TIMESTAMP_LIMIT) {
+                    // Mise à jour du timestamp.
+                    stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP = "+ timestampACheck +" WHERE PSEUDO = '" + pseudo + "';");
+                    
                     isOK = true;
                     break;
+                } else {
+                    logout(pseudo);
                 }
             }
             
@@ -104,5 +109,21 @@ public class AdminUtils {
         }
         
         return isOK;
+    }
+    
+    private static void logout(String pseudo) {
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();  
+            stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TOKEN = 'NULL' WHERE PSEUDO = '" + pseudo + "';");
+            stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = '0' WHERE PSEUDO = '" + pseudo + "';");
+
+            stmt.close();
+        } catch (SQLException ex) {
+                Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+        } 
     }
 }
