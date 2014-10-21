@@ -53,6 +53,8 @@ public class Annee {
     @XmlElement(name="ues")
     private ArrayList<UE> ues;
 
+    private Etablissement eta;
+    
     /**
      * Constructeur par défaut de la classe.
      */
@@ -109,6 +111,10 @@ public class Annee {
         return nomDiplome;
     }
     
+    public Etablissement getEtablissement() {
+        return eta;
+    }
+    
     /* Setters. */
 
     public void setIdAnnee(int idAnnee) {
@@ -142,4 +148,8 @@ public class Annee {
     public void setNomDiplome(String nomDiplome) {
         this.nomDiplome = nomDiplome;
     }    
+    
+    public void setEtablissement(Etablissement eta) {
+        this.eta = eta;
+    }
 }

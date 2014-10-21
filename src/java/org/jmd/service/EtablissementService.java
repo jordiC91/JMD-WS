@@ -148,7 +148,7 @@ public class EtablissementService {
      */
     @GET
     @Path("getAll")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Etablissement> getAll() {
         ArrayList<Etablissement> etablissements = new ArrayList<>();
         

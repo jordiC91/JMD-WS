@@ -1,10 +1,12 @@
 package org.jmd.service;
 
 import java.sql.*;
+import java.util.ArrayList;
 import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
+import org.jmd.metier.Regle;
 import org.jmd.utils.*;
 
 /**
@@ -138,6 +140,56 @@ public class RegleService {
         } else {
             return Response.status(401).build();
         }
+    }
+    
+    /**
+     * Méthode permettant de récupérer l'ensemble des règles d'une année.
+     * 
+     * @param idAnnee L'identifiant de l'année.
+     * 
+     * @return La liste des règles de l'année spécifiée.
+     */
+    @GET
+    @Path("getAllByAnnee")
+    @Produces("application/json")
+    public ArrayList<Regle> getAllByAnnee(
+            @QueryParam("idAnnee")
+                    int idAnnee) {
+        
+        ArrayList<Regle> regles = new ArrayList<>();
+        
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            ResultSet results = stmt.executeQuery("SELECT * "
+                                                + "FROM ANNEE, REGLE "
+                                                + "WHERE (ID_ANNEE=" + idAnnee + ") AND (ANNEE.ID = REGLE.ID_ANNEE);");
+            
+            Regle r = null;
+            
+            while (results.next()) {
+                r = new Regle();
+                r.setId(results.getInt("REGLE.ID"));
+                r.setIdAnnee(results.getInt("REGLE.ID_ANNEE"));
+                r.setIdMatiere(results.getInt("REGLE.ID_MATIERE"));
+                r.setIdUE(results.getInt("REGLE.ID_UE"));
+                r.setOperateur(results.getInt("REGLE.OPERATEUR"));
+                r.setRegle(results.getInt("REGLE.REGLE"));
+                r.setValeur(results.getInt("REGLE.VALEUR"));
+                
+                regles.add(r);
+            }
+            
+            results.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return regles;
     }
     
     /**

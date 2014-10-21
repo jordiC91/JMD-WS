@@ -267,7 +267,62 @@ public class AnneeService {
         }
         
         return annees;
-        //return Response.status(200).entity(diplomes.toArray(new Diplome[diplomes.size()])).build();
+    }
+    
+    /**
+     * Méthode permettant de récupérer la liste des années en fonction d'un diplôme.
+     *
+     * @param idDiplome L'identifiant du diplôme.
+     *
+     * @return Une liste d'année de la recherche faites sur le diplôme pour l'année spécifiée.
+     */
+    @GET
+    @Path("getAnneesByDiplome")
+    @Produces("application/json")
+    public ArrayList<Annee> getAnneesByDiplome (
+            @QueryParam("idDiplome")
+                    String idDiplome) {
+        
+        ArrayList<Annee> annees = new ArrayList<>();
+        
+        if (connexion == null) {
+            connexion = SQLUtils.getConnexion();
+        }
+        
+        try {
+            Statement stmt = connexion.createStatement();
+            ResultSet results = stmt.executeQuery("SELECT * "
+                                                + "FROM ANNEE, ETABLISSEMENT "
+                                                + "WHERE (ID_DIPLOME=" + idDiplome + ") AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
+            
+            Annee a = null;
+            
+            while (results.next()) {
+                a = new Annee();
+                a.setIdAnnee(results.getInt("ANNEE.ID"));
+                a.setNom(results.getString("ANNEE.NOM"));
+                a.setIdEtablissement(results.getInt("ID_ETABLISSEMENT"));
+                a.setIdDiplome(results.getInt("ID_DIPLOME"));
+                a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
+                a.setDecoupage(results.getString("DECOUPAGE"));
+                
+                Etablissement e = new Etablissement();
+                e.setIdEtablissement(results.getInt("ETABLISSEMENT.ID"));
+                e.setNom(results.getString("ETABLISSEMENT.NOM"));
+                e.setVille(results.getString("VILLE"));
+                
+                a.setEtablissement(e);
+                
+                annees.add(a);
+            }
+            
+            results.close();
+            stmt.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        
+        return annees;
     }
     
     /**
