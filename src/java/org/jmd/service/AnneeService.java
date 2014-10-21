@@ -170,11 +170,9 @@ public class AnneeService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results1 = stmt.executeQuery("SELECT * FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID="+idAnnee+" AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
+            ResultSet results1 = stmt.executeQuery("SELECT ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID="+idAnnee+" AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
             ResultSet results2;
             ResultSet results3;
-            UE ue = null;
-            Matiere matiere = null;
             
             while (results1.next()) {
                 a = new Annee();
@@ -182,24 +180,24 @@ public class AnneeService {
                 a.setNom(results1.getString("ANNEE.NOM"));
                 a.setIdEtablissement(results1.getInt("ANNEE.ID_ETABLISSEMENT"));
                 a.setIdDiplome(results1.getInt("ANNEE.ID_DIPLOME"));
-                a.setIsLastYear(true);
+                a.setIsLastYear(results1.getBoolean("ANNEE.IS_LAST_YEAR"));
                 a.setNomEtablissement(results1.getString("ETABLISSEMENT.NOM"));
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
                 // Récupération des UEs pour une année
-                results2 = connexion.createStatement().executeQuery("SELECT * FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
+                results2 = connexion.createStatement().executeQuery("SELECT ID, YEAR_TYPE, NOM FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
 
                 while(results2.next()){
-                    ue = new UE();
+                    UE ue = new UE();
                     ue.setIdUE(results2.getInt("ID"));
                     ue.setYearType(results2.getString("YEAR_TYPE"));
                     ue.setNom(results2.getString("NOM"));
                     
                     // Récupération des matières pour une UE
-                    results3 = connexion.createStatement().executeQuery("SELECT * FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
+                    results3 = connexion.createStatement().executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, NOM FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
                     
                     while(results3.next()){
-                        matiere = new Matiere();
+                        Matiere matiere = new Matiere();
                         matiere.setCoefficient(results3.getFloat("COEFFICIENT"));
                         matiere.setIdMatiere(results3.getInt("ID"));
                         matiere.setIsOption(results3.getBoolean("IS_OPTION"));
@@ -249,7 +247,7 @@ public class AnneeService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results1 = stmt.executeQuery("SELECT * FROM ANNEE WHERE ID_DIPLOME="+idDiplome+" AND ID_ETABLISSEMENT="+idEtablissement+";");
+            ResultSet results1 = stmt.executeQuery("SELECT ID, NOM, ID_ETABLISSEMENT, ID_DIPLOME, IS_LAST_YEAR FROM ANNEE WHERE ID_DIPLOME="+idDiplome+" AND ID_ETABLISSEMENT="+idEtablissement+";");
             Annee a = null;
             
             while (results1.next()) {

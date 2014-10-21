@@ -45,9 +45,9 @@ public class AdminUtils {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * " +
+            ResultSet results = stmt.executeQuery("SELECT TOKEN " +
                                                   "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "')");
+                                                  "WHERE (PSEUDO = '" + pseudo + "');");
                        
             while (results.next()) {    
                 String token = results.getString("TOKEN");
@@ -86,9 +86,9 @@ public class AdminUtils {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * " +
+            ResultSet results = stmt.executeQuery("SELECT TIMESTAMP_USER " +
                                                   "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "')");
+                                                  "WHERE (PSEUDO = '" + pseudo + "');");
                        
             while (results.next()) {    
                 long timestamp = results.getLong("TIMESTAMP_USER");
@@ -103,7 +103,7 @@ public class AdminUtils {
                     logout(pseudo);
                 }
             }
-            
+            results.close();
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
