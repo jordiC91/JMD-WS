@@ -128,7 +128,8 @@ public class RegleService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");                    
+                    stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);

@@ -126,6 +126,7 @@ public class EtablissementService {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM ETABLISSEMENT WHERE (ID = " + id + ")");
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);

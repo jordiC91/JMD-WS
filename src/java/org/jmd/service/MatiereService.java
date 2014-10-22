@@ -124,6 +124,7 @@ public class MatiereService {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
