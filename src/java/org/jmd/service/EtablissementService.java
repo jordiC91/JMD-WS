@@ -9,7 +9,6 @@ import java.util.logging.*;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.Response;
-import org.jmd.*;
 import org.jmd.metier.Etablissement;
 
 /**

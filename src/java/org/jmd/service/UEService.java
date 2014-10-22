@@ -208,8 +208,8 @@ public class UEService {
         
         try {
             Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * " +
-                    "FROM ANNEE, UE " +
+            ResultSet results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE " +
+                    "FROM ANNEE, UE, MATIERE " +
                     "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE) AND (UE.ID = MATIERE.ID_UE) AND (YEAR_TYPE ='" + yearType + "');");
             
             UE ue = null;
