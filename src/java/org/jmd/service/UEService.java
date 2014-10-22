@@ -123,7 +123,7 @@ public class UEService {
                     stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
                     
                     // A FAIRE SUPPRESSION EN CASCADE
-                    
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);

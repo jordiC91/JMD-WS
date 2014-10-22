@@ -41,7 +41,7 @@ public class AnneeService {
      * du diplôme.
      * @param idEtablissement L'identifiant de l'établissement de l'année.
      * @param idDiplome L'identifiant du diplôme dont fait partie l'année.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
@@ -77,7 +77,7 @@ public class AnneeService {
         if (connexion == null) {
             connexion = SQLUtils.getConnexion();
         }
-           
+        
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 Statement stmt = connexion.createStatement();
@@ -103,7 +103,7 @@ public class AnneeService {
      * Méthode permettant de supprimer une année.
      *
      * @param id L'identifiant de l'année à supprimer.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
@@ -135,13 +135,13 @@ public class AnneeService {
             try {
                 try (Statement stmt = connexion.createStatement()) {
                     stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = "+id+");");
+                    stmt.close();
                 }
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 
                 return Response.status(500).build();
             }
-            
             return Response.status(200).build();
         } else {
             return Response.status(401).build();
@@ -169,8 +169,10 @@ public class AnneeService {
         }
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results1 = stmt.executeQuery("SELECT ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID="+idAnnee+" AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
+            Statement stmt1 = connexion.createStatement();
+            Statement stmt2 = connexion.createStatement();
+            Statement stmt3 = connexion.createStatement();
+            ResultSet results1 = stmt1.executeQuery("SELECT ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID="+idAnnee+" AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
             ResultSet results2;
             ResultSet results3;
             
@@ -185,8 +187,9 @@ public class AnneeService {
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 
                 // Récupération des UEs pour une année
-                results2 = connexion.createStatement().executeQuery("SELECT ID, YEAR_TYPE, NOM FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
-
+                stmt2 = connexion.createStatement();
+                results2 = stmt2.executeQuery("SELECT ID, YEAR_TYPE, NOM FROM UE WHERE ID_ANNEE="+a.getIdAnnee()+";");
+                
                 while(results2.next()){
                     UE ue = new UE();
                     ue.setIdUE(results2.getInt("ID"));
@@ -194,7 +197,8 @@ public class AnneeService {
                     ue.setNom(results2.getString("NOM"));
                     
                     // Récupération des matières pour une UE
-                    results3 = connexion.createStatement().executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, NOM FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
+                    stmt3 = connexion.createStatement();
+                    results3 = stmt3.executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, NOM FROM MATIERE WHERE ID_UE="+ue.getIdUE()+";");
                     
                     while(results3.next()){
                         Matiere matiere = new Matiere();
@@ -206,14 +210,16 @@ public class AnneeService {
                     }
                     
                     results3.close();
+                    stmt3.close();
                     a.addUE(ue);
                 }
                 
                 results2.close();
+                stmt2.close();
             }
             
             results1.close();
-            stmt.close();
+            stmt1.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -292,8 +298,8 @@ public class AnneeService {
         try {
             Statement stmt = connexion.createStatement();
             ResultSet results = stmt.executeQuery("SELECT * "
-                                                + "FROM ANNEE, ETABLISSEMENT "
-                                                + "WHERE (ID_DIPLOME=" + idDiplome + ") AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
+                    + "FROM ANNEE, ETABLISSEMENT "
+                    + "WHERE (ID_DIPLOME=" + idDiplome + ") AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
             
             Annee a = null;
             
