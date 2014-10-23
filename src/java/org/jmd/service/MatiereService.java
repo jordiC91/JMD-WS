@@ -4,7 +4,6 @@ import org.jmd.utils.*;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
-import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import org.jmd.metier.Matiere;
@@ -16,12 +15,6 @@ import org.jmd.metier.Matiere;
  */
 @Path("matiere")
 public class MatiereService {
-    
-    /**
-     * Objet représentant une connexion à la base de données de 
-     * l'application.
-     */
-    private Connection connexion;
     
     /**
      * Constructeur par défaut de la classe.
@@ -37,7 +30,7 @@ public class MatiereService {
      * @param coefficient Le coefficient de la matière à créer.
      * @param isOption Si la matière à créer est une option ou non.
      * @param idUE ID de l'UE auquel appartient la matière
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
@@ -66,20 +59,47 @@ public class MatiereService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
-                Statement stmt = connexion.createStatement();
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
-                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 return Response.status(500).build();
+            }
+            finally {
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
             
             return Response.status(200).build();
@@ -92,7 +112,7 @@ public class MatiereService {
      * Méthode permettant de supprimer une matière.
      *
      * @param id L'identifiant de la matière à supprimer.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
@@ -115,25 +135,52 @@ public class MatiereService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
-
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
-                try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
-                    stmt.close();
-                }
-            } catch (SQLException ex) {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
+            }
+            catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 return Response.status(500).build();
             }
-            
+            finally {
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
             return Response.status(200).build();
-        } else {
+        }
+        else {
             return Response.status(401).build();
         }
     }
@@ -144,16 +191,15 @@ public class MatiereService {
     public ArrayList<Matiere> getAllMatieretOfUE(
             @QueryParam("idUE")
                     int idUE) {
-        
         ArrayList<Matiere> matieres = new ArrayList<>();
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
                     "FROM MATIERE, UE " +
                     "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID);");
             
@@ -165,14 +211,34 @@ public class MatiereService {
                 m.setNom(results.getString("MATIERE.NOM"));
                 m.setCoefficient(results.getFloat("MATIERE.COEFFICIENT"));
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
-                
                 matieres.add(m);
             }
-            
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if( results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         
         return matieres;
@@ -186,14 +252,14 @@ public class MatiereService {
                     int idAnnee) {
         
         ArrayList<Matiere> matieres = new ArrayList<>();
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
                     "FROM MATIERE, UE, ANNEE " +
                     "WHERE (UE.ID = MATIERE.ID_UE) AND (UE.ID_ANNEE = ANNEE.ID)  AND (ANNEE.ID = " + idAnnee + ");");
             
@@ -208,11 +274,32 @@ public class MatiereService {
                 
                 matieres.add(m);
             }
-            
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if( results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         
         return matieres;
@@ -222,14 +309,15 @@ public class MatiereService {
      * Méthode exécutée avant la fin de vie du service.
      * La connexion à la base est fermée.
      */
+    /*
     @PreDestroy
     public void onDestroy() {
-        if (connexion != null) {
-            try {
-                connexion.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    if (connexion != null) {
+    try {
+    connexion.close();
+    } catch (SQLException ex) {
+    Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
     }
+    }
+    }*/
 }

@@ -3,7 +3,6 @@ package org.jmd.service;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.logging.*;
-import javax.annotation.PreDestroy;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import org.jmd.metier.Regle;
@@ -16,13 +15,6 @@ import org.jmd.utils.*;
  */
 @Path("regle")
 public class RegleService {
-    
-    /**
-     * Objet représentant une connexion à la base de données de 
-     * l'application.
-     */
-    private Connection connexion;
-    
     /**
      * Constructeur par défaut de la classe.
      */
@@ -32,19 +24,19 @@ public class RegleService {
     
     /**
      * Méthode permettant de créer une règle.
-     * 
+     *
      * @param regle La règle (0 ou 1, NB_OPT_MINI ou NOTE_MINIMALE).
      * @param operateur L'opérateur de la règle : >, <, <=, ...
      * @param valeur La valeur de la règle.
      * @param idAnnee L'identifiant de l'année rattachée à la règle.
      * @param idUE L'identifiant de l'UE rattachée à la règle.
      * @param idMatiere L'identifiant de la matière rattachée à la règle.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
-     * 
+     *
      * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est
      * connecté (donc autorisé).
@@ -72,24 +64,54 @@ public class RegleService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
-                Statement stmt = connexion.createStatement();
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO REGLE (REGLE, ID_ANNEE, ID_UE, ID_MATIERE, OPERATEUR, VALEUR) VALUES (" + regle + "," + idAnnee + "," + idUE + "," + idMatiere + ", " + operateur + ", " + valeur + ");");
                 stmt.close();
-            } catch (SQLException ex) {
+            }
+            catch (SQLException ex) {
                 Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
-                
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 return Response.status(500).build();
+            }
+            finally {
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
             
             return Response.status(200).build();
-        } else {
+        }
+        else {
             return Response.status(401).build();
         }
     }
@@ -98,7 +120,7 @@ public class RegleService {
      * Méthode permettant de supprimer une règle.
      *
      * @param id L'identifiant de la règle à supprimer.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
@@ -120,34 +142,62 @@ public class RegleService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        Connection connexion = null;
+        Statement stmt = null;
         
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
-         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
-                try (Statement stmt = connexion.createStatement()) {
-                    stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");
-                    stmt.close();
-                }
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
-                
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 return Response.status(500).build();
+            }
+            finally {
+                if(stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
             }
             
             return Response.status(200).build();
-        } else {
+        }
+        else {
             return Response.status(401).build();
         }
     }
     
     /**
      * Méthode permettant de récupérer l'ensemble des règles d'une année.
-     * 
+     *
      * @param idAnnee L'identifiant de l'année.
-     * 
+     *
      * @return La liste des règles de l'année spécifiée.
      */
     @GET
@@ -158,16 +208,16 @@ public class RegleService {
                     int idAnnee) {
         
         ArrayList<Regle> regles = new ArrayList<>();
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT * "
-                                                + "FROM ANNEE, REGLE "
-                                                + "WHERE (ID_ANNEE=" + idAnnee + ") AND (ANNEE.ID = REGLE.ID_ANNEE);");
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT * "
+                    + "FROM ANNEE, REGLE "
+                    + "WHERE (ID_ANNEE=" + idAnnee + ") AND (ANNEE.ID = REGLE.ID_ANNEE);");
             
             Regle r = null;
             
@@ -183,11 +233,32 @@ public class RegleService {
                 
                 regles.add(r);
             }
-            
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
+        }
+        catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if( results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         
         return regles;
@@ -197,14 +268,15 @@ public class RegleService {
      * Méthode exécutée avant la fin de vie du service.
      * La connexion à la base est fermée.
      */
+    /*
     @PreDestroy
     public void onDestroy() {
-        if (connexion != null) {
-            try {
-                connexion.close();
-            } catch (SQLException ex) {
-                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
-            }
-        }
+    if (connexion != null) {
+    try {
+    connexion.close();
+    } catch (SQLException ex) {
+    Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
     }
+    }
+    }*/
 }

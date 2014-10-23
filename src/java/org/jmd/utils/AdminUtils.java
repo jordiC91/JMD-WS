@@ -3,6 +3,7 @@ package org.jmd.utils;
 import java.sql.*;
 import java.util.logging.*;
 import org.jmd.Constantes;
+import org.jmd.service.AdminService;
 import org.jmd.service.DiplomeService;
 
 /**
@@ -12,12 +13,6 @@ import org.jmd.service.DiplomeService;
  * @author jordi charpentier - yoann vanhoeserlande
  */
 public class AdminUtils {
-    
-    /**
-     * Objet représentant une connexion à la base de données de  l'application.
-     */
-    private static Connection connexion;
-    
     /**
      * Constructeur privé de la classe.<br />
      * Empèche son instanciation.
@@ -38,14 +33,14 @@ public class AdminUtils {
      */
     public static boolean checkToken(String pseudo, String tokenACheck) {
         boolean isOK = false;
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT TOKEN " +
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT TOKEN " +
                                                   "FROM ADMINISTRATEUR " +
                                                   "WHERE (PSEUDO = '" + pseudo + "');");
                        
@@ -62,6 +57,28 @@ public class AdminUtils {
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }        finally {
+            if( results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         
         return isOK;
@@ -79,14 +96,14 @@ public class AdminUtils {
      */
     public static boolean checkTimestamp(String pseudo, long timestampACheck) {
         boolean isOK = false;
-        
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
         
         try {
-            Statement stmt = connexion.createStatement();
-            ResultSet results = stmt.executeQuery("SELECT TIMESTAMP_USER " +
+            connexion = SQLUtils.getConnexion();
+             stmt = connexion.createStatement();
+             results = stmt.executeQuery("SELECT TIMESTAMP_USER " +
                                                   "FROM ADMINISTRATEUR " +
                                                   "WHERE (PSEUDO = '" + pseudo + "');");
                        
@@ -107,24 +124,62 @@ public class AdminUtils {
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+        }        finally {
+            if( results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
         }
         
         return isOK;
     }
     
     private static void logout(String pseudo) {
-        if (connexion == null) {
-            connexion = SQLUtils.getConnexion();
-        }
+        Connection connexion = null;
+        Statement stmt = null;
         
         try {
-            Statement stmt = connexion.createStatement();  
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();  
             stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TOKEN = 'NULL' WHERE PSEUDO = '" + pseudo + "';");
             stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = '0' WHERE PSEUDO = '" + pseudo + "';");
 
             stmt.close();
         } catch (SQLException ex) {
                 Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
-        } 
+        }         
+        finally {
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
     }
 }
