@@ -206,7 +206,7 @@ public class AnneeService {
      */
     @GET
     @Path("getCompleteYear")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public Annee getCompleteYear (
             @QueryParam("idAnnee")
                     String idAnnee) {
@@ -341,7 +341,7 @@ public class AnneeService {
      */
     @GET
     @Path("getAnnees")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnnees (
             @QueryParam("idDiplome")
                     String idDiplome,
@@ -407,7 +407,7 @@ public class AnneeService {
      */
     @GET
     @Path("getAnneesByDiplome")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnneesByDiplome (
             @QueryParam("idDiplome")
                     String idDiplome) {

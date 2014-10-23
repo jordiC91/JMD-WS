@@ -279,7 +279,7 @@ public class DiplomeService {
      */
     @GET
     @Path("getAll")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Diplome> getAll() {
         
         ArrayList<Diplome> diplomes = null;
@@ -342,6 +342,7 @@ public class DiplomeService {
      */
     @GET
     @Path("search")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Diplome> search(
             @QueryParam ("nom")
                     String nom){

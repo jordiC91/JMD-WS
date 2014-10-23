@@ -187,7 +187,7 @@ public class MatiereService {
     
     @GET
     @Path("getAllMatieretOfUE")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Matiere> getAllMatieretOfUE(
             @QueryParam("idUE")
                     int idUE) {
@@ -246,7 +246,7 @@ public class MatiereService {
     
     @GET
     @Path("getAllMatiereOfYear")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Matiere> getAllMatiereOfYear(
             @QueryParam("idAnnee")
                     int idAnnee) {
