@@ -665,7 +665,7 @@ public class AdminService {
      */
     @GET
     @Path("getAllAdminInactive")
-    @Produces(MediaType.APPLICATION_JSON)
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Administrateur> getAllAdminInactive() {
         ArrayList<Administrateur> listesAdmin = new ArrayList<>();
         

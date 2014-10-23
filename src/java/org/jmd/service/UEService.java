@@ -194,7 +194,7 @@ public class UEService {
      */
     @GET
     @Path("getAllUEOfAnnee")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<UE> getAllUEOfAnnee(@QueryParam("idAnnee")
             int idAnnee) {
         
@@ -261,7 +261,7 @@ public class UEService {
      */
     @GET
     @Path("getAllUEOfAnneeByYearType")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<UE> getAllUEOfAnneeByYearType(
             @QueryParam("idAnnee")
                     int idAnnee,

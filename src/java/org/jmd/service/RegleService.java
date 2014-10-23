@@ -202,7 +202,7 @@ public class RegleService {
      */
     @GET
     @Path("getAllByAnnee")
-    @Produces("application/json")
+    @Produces("application/json;charset=utf-8")
     public ArrayList<Regle> getAllByAnnee(
             @QueryParam("idAnnee")
                     int idAnnee) {
