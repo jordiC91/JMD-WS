@@ -139,7 +139,7 @@ public class DiplomeService {
             ResultSet results3 = null;
             
             try {
-                SQLUtils.getConnexion();
+                connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 results1 = stmt.executeQuery("SELECT * FROM ANNEE WHERE (ID_DIPLOME = " + id + ")");
                 
@@ -164,45 +164,6 @@ public class DiplomeService {
                             idMatiereList.add(results1.getInt("ID"));
                         }
                     }
-                }
-                // S'il n'y a pas de résultats pour l'id diplôme spécifié.
-                if (!hasResults) {
-                    if( results1 != null ) {
-                        try {
-                            results1.close();
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    if( results2 != null ) {
-                        try {
-                            results2.close();
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    if( results3 != null ) {
-                        try {
-                            results3.close();
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    if(stmt != null){
-                        try {
-                            stmt.close();
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    if (connexion != null){
-                        try {
-                            connexion.close();
-                        } catch (SQLException ex) {
-                            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-                        }
-                    }
-                    return Response.status(404).entity("ID_NOT_FOUND").build();
                 }
                 
                 // Suppression des matières du diplôme.
