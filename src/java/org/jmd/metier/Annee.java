@@ -11,6 +11,8 @@ import javax.xml.bind.annotation.*;
 @XmlRootElement
 public class Annee {
     
+    // En base. 
+    
     /**
      * L'identifiant de l'année.
      */
@@ -43,15 +45,17 @@ public class Annee {
      */
     private int idDiplome;
     
-    private String nomEtablissement;
-    
-    private String nomDiplome;
-    
     /**
      * La liste des UE de l'année.
      */
     @XmlElement(name="ues")
     private ArrayList<UE> ues;
+    
+    // Non en base.
+    
+    private String nomEtablissement;
+    
+    private String nomDiplome;
 
     private Etablissement eta;
     
@@ -71,13 +75,16 @@ public class Annee {
      * <b>false</b> sinon.
      */
     public boolean addUE(UE ue) {
-        if(this.ues == null)
+        if (this.ues == null) {
             this.ues = new ArrayList<>();
+        }
         
         return this.ues.add(ue);
     } 
     
     /* Getters. */
+    
+    // En base.
     
     public int getIdAnnee() {
         return idAnnee;
@@ -103,6 +110,8 @@ public class Annee {
         return idDiplome;
     }
     
+    // Non en base.
+    
     public String getNomEtablissement() {
         return nomEtablissement;
     }
@@ -117,6 +126,8 @@ public class Annee {
     
     /* Setters. */
 
+    // En base.
+    
     public void setIdAnnee(int idAnnee) {
         this.idAnnee = idAnnee;
     }
@@ -141,6 +152,8 @@ public class Annee {
         this.idDiplome = idDiplome;
     }
 
+    // Non en base.
+    
     public void setNomEtablissement(String nomEtablissement) {
         this.nomEtablissement = nomEtablissement;
     }

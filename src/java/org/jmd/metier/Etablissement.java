@@ -34,28 +34,58 @@ public class Etablissement {
     
     /* Getters. */
 
+    /**
+     * Méthode retournant le nom de l'établissement.
+     * 
+     * @return Le nom de l'établissement.
+     */
     public String getNom() {
-        return nom;
+        return this.nom;
     }
     
+    /**
+     * Méthode retournant la ville de l'établissement.
+     * 
+     * @return La ville de l'établissement.
+     */
     public String getVille() {
-        return ville;
+        return this.ville;
     }
     
+    /**
+     * Méthode retournant l'identifiant de l'établissement.
+     * 
+     * @return L'identifiant de l'établissement.
+     */
     public int getIdEtablissement() {
-        return idEtablissement;
+        return this.idEtablissement;
     }
     
     /* Setters. */
 
+    /**
+     * Méthode permettant de modifier le nom de l'établissement.
+     * 
+     * @param nom Le nouveau nom de l'établissement.
+     */
     public void setNom(String nom) {
         this.nom = nom;
     }
 
+    /**
+     * Méthode permettant de modifier la ville de l'établissement.
+     * 
+     * @param ville La nouvelle ville de l'établissement.
+     */
     public void setVille(String ville) {
         this.ville = ville;
     }
 
+    /**
+     * Méthode permettant de modifier l'identifiant de l'établissement.
+     * 
+     * @param idEtablissement Le nouvel identifiant de l'établissement.
+     */
     public void setIdEtablissement(int idEtablissement) {
         this.idEtablissement = idEtablissement;
     }

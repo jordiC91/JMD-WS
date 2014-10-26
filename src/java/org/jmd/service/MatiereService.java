@@ -59,6 +59,7 @@ public class MatiereService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -69,35 +70,38 @@ public class MatiereService {
                 stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                if(stmt != null){
+                
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
-            }
+            } 
             finally {
-                if(stmt != null){
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -135,6 +139,7 @@ public class MatiereService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -143,54 +148,64 @@ public class MatiereService {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
-            }
-            catch (SQLException ex) {
+            } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                if(stmt != null){
+                
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
             return Response.status(200).build();
-        }
-        else {
+        } else {
             return Response.status(401).build();
         }
     }
     
+    /**
+     * Méthode permettant de récupérer l'ensemble des matières d'une UE.
+     * 
+     * @param idUE L'identifiant de l'UE recherchée.
+     * 
+     * @return La liste de l'ensemble des matières de l'UE spécifiée.
+     */
     @GET
     @Path("getAllMatieretOfUE")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Matiere> getAllMatieretOfUE(
             @QueryParam("idUE")
                     int idUE) {
+        
         ArrayList<Matiere> matieres = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
@@ -213,19 +228,19 @@ public class MatiereService {
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
                 matieres.add(m);
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
@@ -244,6 +259,13 @@ public class MatiereService {
         return matieres;
     }
     
+    /**
+     * Méthode permettant de récupérer l'ensemble des matières d'une année.
+     * 
+     * @param idAnnee L'identifiant de l'année recherchée.
+     * 
+     * @return La liste de l'ensemble des matières de l'année spécifiée.
+     */
     @GET
     @Path("getAllMatiereOfYear")
     @Produces("application/json;charset=utf-8")
@@ -274,25 +296,26 @@ public class MatiereService {
                 
                 matieres.add(m);
             }
-        }
-        catch (SQLException ex) {
+        } catch (SQLException ex) {
             Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
@@ -304,20 +327,4 @@ public class MatiereService {
         
         return matieres;
     }
-    
-    /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
-     */
-    /*
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }*/
 }

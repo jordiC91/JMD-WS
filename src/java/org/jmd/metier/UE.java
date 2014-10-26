@@ -1,8 +1,7 @@
 package org.jmd.metier;
 
 import java.util.ArrayList;
-import javax.xml.bind.annotation.XmlElement;
-import javax.xml.bind.annotation.XmlRootElement;
+import javax.xml.bind.annotation.*;
 
 /**
  * Classe représentant une UE.
@@ -26,6 +25,11 @@ public class UE {
      * Le type de l'UE (SEMESTRE 1/2, TRIMESTRE 1/2, ...).
      */
     private String yearType;
+    
+    /**
+     * L'identifiant de l'année à laquelle est rattachée l'UE.
+     */
+    private int idAnnee;
     
     /**
      * La liste des matières de l'UE.
@@ -58,29 +62,77 @@ public class UE {
     
     /* Getters. */
     
+    /**
+     * Méthode retournant l'identifiant de l'UE.
+     * 
+     * @return L'identifiant de l'UE.
+     */
     public int getIdUE() {
-        return idUE;
+        return this.idUE;
     }
     
+    /**
+     * Méthode retournant le nom de l'UE.
+     * 
+     * @return Le nom de l'UE. 
+     */
     public String getNom() {
-        return nom;
+        return this.nom;
     }
     
+    /**
+     * Méthode retournant le type de l'UE.
+     * 
+     * @return Le type de l'UE (SEMESTRE 1/2, TRIMESTRE 1/2, ...).
+     */
     public String getYearType() {
-        return yearType;
+        return this.yearType;
+    }
+    
+    /**
+     * Méthode retournant l'identifiant de l'année à laquelle l'UE est rattachée.
+     * 
+     * @return L'identifiant de l'année à laquelle est rattachée l'UE.
+     */
+    public int getIdAnnee() {
+        return this.idAnnee;
     }
     
     /* Setters. */
 
+    /**
+     * Méthode permettant de modifier l'identifiant de l'UE.
+     * 
+     * @param idUE Le nouvel identifiant de l'UE.
+     */
     public void setIdUE(int idUE) {
         this.idUE = idUE;
     }
     
+    /**
+     * Méthode permettant de modifier le nom de l'UE.
+     * 
+     * @param nom Le nouveau nom de l'UE.
+     */
     public void setNom(String nom) {
         this.nom = nom;
     }
-
+    
+    /**
+     * Méthode permettant de modifier le type de l'UE.
+     * 
+     * @param yearType Le nouveau type de l'UE.
+     */
     public void setYearType(String yearType) {
         this.yearType = yearType;
+    }
+    
+    /**
+     * Méthode permettant de modifier l'identifiant de l'année.
+     * 
+     * @param idAnnee Le nouvel identifiant de l'année.
+     */
+    public void setIdAnnee(int idAnnee) {
+        this.idAnnee = idAnnee;
     }
 }

@@ -1,9 +1,7 @@
 package org.jmd.service;
 
-import org.jmd.utils.AdminUtils;
-import org.jmd.utils.SQLUtils;
+import org.jmd.utils.*;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
-import java.security.*;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
@@ -62,7 +60,7 @@ public class AdminService {
             
             while (results.next()) {
                 String sel = results.getString("SEL");
-                String passwordSalted = sha256(password + sel);
+                String passwordSalted = AdminUtils.sha256(password + sel);
                 
                 if (!passwordSalted.equals(results.getString("PASSWORD"))) {
                     results.close();
@@ -84,19 +82,26 @@ public class AdminService {
                     results.close();
                     stmt.close();
                     connexion.close();
+                    
                     return Response.status(403).build();
                 }
                 
                 
-                String token = generateRandomCode();
+                String token = AdminUtils.generateRandomCode();
                 stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TOKEN = '" + token + "' WHERE PSEUDO = '" + pseudo + "';");
                 stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = " + new java.util.Date().getTime() + " WHERE PSEUDO = '" + pseudo + "';");
+                
+                results.close();
+                stmt.close();
+                connexion.close();
+                
                 return Response.status(200).entity(token).build();
             }
             
             results.close();
             stmt.close();
             connexion.close();
+            
             return Response.status(401).build();
         } catch (SQLException ex) {
             Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
@@ -104,13 +109,14 @@ public class AdminService {
             return Response.status(500).build();
         }
         finally {
-            if( results != null ) {
+            if (results != null) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if(stmt != null){
                 try {
                     stmt.close();
@@ -118,6 +124,7 @@ public class AdminService {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
@@ -154,7 +161,7 @@ public class AdminService {
         Connection connexion = null;
         Statement stmt = null;
         
-        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+        if (AdminUtils.checkToken(pseudo, token)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
@@ -211,7 +218,7 @@ public class AdminService {
         Statement stmt = null;
         ResultSet results = null;
         
-        String randomString = generateRandomCode();
+        String randomString = AdminUtils.generateRandomCode();
         
         try {
             connexion = SQLUtils.getConnexion();
@@ -246,7 +253,7 @@ public class AdminService {
             
             return Response.status(200).build();
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             if( results != null ) {
                 try {
                     results.close();
@@ -432,7 +439,7 @@ public class AdminService {
                 
                 return Response.status(404).entity("NO_REQU").build();
             } else {
-                String newMdp = generateRandomCode();
+                String newMdp = AdminUtils.generateRandomCode();
                 
                 String text = "Bonjour " + pseudo + ",<br />"
                         + "Voici votre nouveau mot de passe : " + newMdp + "."
@@ -443,14 +450,14 @@ public class AdminService {
                 
                 sendMail(subject, text, emailAdmin);
                 
-                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + AdminUtils.sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
             }
             results.close();
             stmt.close();
             connexion.close();
             
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             if( results != null ) {
                 try {
                     results.close();
@@ -544,7 +551,7 @@ public class AdminService {
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             if(stmt != null){
                 try {
                     stmt.close();
@@ -607,8 +614,10 @@ public class AdminService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
@@ -621,32 +630,35 @@ public class AdminService {
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-            if(stmt != null){
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException exc) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-            if (connexion != null){
+            
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException exc) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
+            
             return Response.status(500).build();
         }
         finally {
-            if(stmt != null){
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
@@ -694,21 +706,23 @@ public class AdminService {
             Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
@@ -748,6 +762,7 @@ public class AdminService {
                     String pseudo,
             @QueryParam("password")
                     String password) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -755,12 +770,12 @@ public class AdminService {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
             
-            String sel = generateRandomCode();
-            String passwordSalted = sha256(password + sel);
+            String sel = AdminUtils.generateRandomCode();
+            String passwordSalted = AdminUtils.sha256(password + sel);
             
             stmt.execute("INSERT INTO ADMINISTRATEUR (PSEUDO, NOM, PRENOM, PASSWORD, EMAIL, EST_ACTIF, SEL, TOKEN, TIMESTAMP_USER) VALUES ('" + pseudo + "', '" + nom + "', '" + prenom + "', '" + passwordSalted + "', '" + email + "', 0, '" + sel + "', '', 0);");
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             if(stmt != null){
                 try {
                     stmt.close();
@@ -781,14 +796,14 @@ public class AdminService {
             return Response.status(500).build();
         }
         finally {
-            if(stmt != null){
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
@@ -798,52 +813,6 @@ public class AdminService {
         }
         
         return Response.status(200).build();
-    }
-    
-    /**
-     * Méthode permettant d'hasher une chaîne de caractères en SHA-256.
-     *
-     * @param passwordToHash La chaîne à hasher.
-     *
-     * @return La chaîne hashée en SHA-256.
-     */
-    private String sha256(String passwordToHash) {
-        String generatedPassword = null;
-        
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = md.digest(passwordToHash.getBytes());
-            StringBuilder sb = new StringBuilder();
-            
-            for(int i=0; i < bytes.length; i++) {
-                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-            }
-            
-            generatedPassword = sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Le SHA-256 n'est pas supporté.");
-        }
-        
-        return generatedPassword;
-    }
-    
-    /**
-     * Méthode permettant de générer un code aléatoire (alphabet + 0123456789)
-     * de 20 caractères.
-     *
-     * @return Le code aléatoire généré.
-     */
-    private String generateRandomCode() {
-        char[] chars = "0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ".toCharArray();
-        StringBuilder sb = new StringBuilder();
-        Random random = new Random();
-        
-        for (int i = 0; i < 20; i++) {
-            char c = chars[random.nextInt(chars.length)];
-            sb.append(c);
-        }
-        
-        return sb.toString();
     }
     
     /**
@@ -884,23 +853,7 @@ public class AdminService {
             
             Transport.send(message);
         } catch (MessagingException e) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, e);
         }
     }
-    /*
-    /**
-    * Méthode exécutée avant la fin de vie du service.
-    * La connexion à la base est fermée.
-    
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }
-    */
 }

@@ -5,8 +5,7 @@ import java.util.ArrayList;
 import java.util.logging.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.utils.AdminUtils;
-import org.jmd.utils.SQLUtils;
+import org.jmd.utils.*;
 import org.jmd.metier.UE;
 
 /**
@@ -56,6 +55,7 @@ public class UEService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -67,35 +67,39 @@ public class UEService {
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
-                if(stmt != null){
+                
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -132,6 +136,7 @@ public class UEService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -139,42 +144,43 @@ public class UEService {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
+                stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID_UE = " + id + ")");
                 stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
-                
-                // A FAIRE SUPPRESSION EN CASCADE
-                stmt.close();
-                
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
-                                if(stmt != null){
+                
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -195,8 +201,9 @@ public class UEService {
     @GET
     @Path("getAllUEOfAnnee")
     @Produces("application/json;charset=utf-8")
-    public ArrayList<UE> getAllUEOfAnnee(@QueryParam("idAnnee")
-            int idAnnee) {
+    public ArrayList<UE> getAllUEOfAnnee(
+            @QueryParam("idAnnee")
+                    int idAnnee) {
         
         ArrayList<UE> UEs = new ArrayList<>();
         Connection connexion = null;
@@ -217,32 +224,35 @@ public class UEService {
                 ue.setIdUE(results.getInt("UE.ID"));
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
+                ue.setIdAnnee(results.getInt("UE.ID_ANNEE"));
                 
                 UEs.add(ue);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -277,9 +287,9 @@ public class UEService {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
 
-            results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE " +
-                    "FROM ANNEE, UE, MATIERE " +
-                    "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE) AND (UE.ID = MATIERE.ID_UE) AND (YEAR_TYPE ='" + yearType + "');");
+            results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.ID_ANNEE " +
+                    "FROM ANNEE, UE " +
+                    "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE) AND (YEAR_TYPE ='" + yearType + "');");
             
             UE ue = null;
             
@@ -288,51 +298,39 @@ public class UEService {
                 ue.setIdUE(results.getInt("UE.ID"));
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
+                ue.setIdAnnee(results.getInt("UE.ID_ANNEE"));
                 
                 UEs.add(ue);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
         
         return UEs;
     }
-    
-    /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
-     *//*
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }*/
 }

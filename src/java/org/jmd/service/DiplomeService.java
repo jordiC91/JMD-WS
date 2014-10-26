@@ -6,8 +6,7 @@ import java.util.ArrayList;
 import java.util.logging.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
-import org.jmd.utils.AdminUtils;
-import org.jmd.utils.SQLUtils;
+import org.jmd.utils.*;
 import org.jmd.metier.Diplome;
 
 /**
@@ -17,6 +16,7 @@ import org.jmd.metier.Diplome;
  */
 @Path("diplome")
 public class DiplomeService {
+    
     /**
      * Constructeur par défaut de la classe.
      */
@@ -51,6 +51,7 @@ public class DiplomeService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -62,34 +63,38 @@ public class DiplomeService {
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-                if(stmt != null){
+                
+                if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-                if (connexion != null){
+                
+                if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-                if (ex instanceof MySQLIntegrityConstraintViolationException){
+                
+                if (ex instanceof MySQLIntegrityConstraintViolationException) {
                     return Response.status(403).entity("DUPLICATE_ENTRY").build();
                 }
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if (connexion != null){
+                if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
@@ -134,6 +139,9 @@ public class DiplomeService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             Connection connexion = null;
             Statement stmt = null;
+            Statement stmt1 = null;
+            Statement stmt2 = null;
+            Statement stmt3 = null;
             ResultSet results1 = null;
             ResultSet results2 = null;
             ResultSet results3 = null;
@@ -141,27 +149,27 @@ public class DiplomeService {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
-                results1 = stmt.executeQuery("SELECT * FROM ANNEE WHERE (ID_DIPLOME = " + id + ")");
+                stmt1 = connexion.createStatement();
+                stmt2 = connexion.createStatement();
+                stmt3 = connexion.createStatement();
+                results1 = stmt1.executeQuery("SELECT * FROM ANNEE WHERE (ID_DIPLOME = " + id + ")");
                 
                 ArrayList<Integer> idAnneeList = new ArrayList<>();
                 ArrayList<Integer> idUEList = new ArrayList<>();
                 ArrayList<Integer> idMatiereList = new ArrayList<>();
                 
-                boolean hasResults = false;
-                
                 while (results1.next()) {
-                    hasResults = true;
                     idAnneeList.add(results1.getInt("ID"));
                     
-                    results2 = stmt.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + results1.getInt("ID") + ")");
+                    results2 = stmt2.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + results1.getInt("ID") + ")");
                     
                     while (results2.next()) {
-                        idUEList.add(results1.getInt("ID"));
+                        idUEList.add(results2.getInt("ID"));
                         
-                        results3 = stmt.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results1.getInt("ID") + ")");
+                        results3 = stmt3.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results2.getInt("ID") + ")");
                         
                         while (results3.next()) {
-                            idMatiereList.add(results1.getInt("ID"));
+                            idMatiereList.add(results3.getInt("ID"));
                         }
                     }
                 }
@@ -186,42 +194,86 @@ public class DiplomeService {
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 
+                if (results1 != null) {
+                    try {
+                        results1.close();
+                    } catch (SQLException e) {
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                }
+                
+                if (results2 != null) {
+                    try {
+                        results2.close();
+                    } catch (SQLException e) {
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                }
+                
+                if (results3 != null) {
+                    try {
+                        results3.close();
+                    } catch (SQLException e) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                }
+                
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException e) {
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                }
+                
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException e) {
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, e);
+                    }
+                }
+                
                 return Response.status(500).build();
             }
             finally {
-                if( results1 != null ) {
+                if (results1 != null) {
                     try {
                         results1.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if( results2 != null ) {
+                
+                if (results2 != null) {
                     try {
                         results2.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if( results3 != null ) {
+                
+                if (results3 != null) {
                     try {
                         results3.close();
                     } catch (SQLException ex) {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if(stmt != null){
+                
+                if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if (connexion != null){
+                
+                if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -242,7 +294,6 @@ public class DiplomeService {
     @Path("getAll")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Diplome> getAll() {
-        
         ArrayList<Diplome> diplomes = null;
         Connection connexion = null;
         Statement stmt = null;
@@ -269,21 +320,21 @@ public class DiplomeService {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             if(stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             if (connexion != null){
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
@@ -334,41 +385,25 @@ public class DiplomeService {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             if(stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             if (connexion != null){
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
         
         return diplomes;
     }
-    
-    /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
-     */
-    /*
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }*/
 }

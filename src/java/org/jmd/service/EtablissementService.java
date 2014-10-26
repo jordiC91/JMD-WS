@@ -1,7 +1,6 @@
 package org.jmd.service;
 
-import org.jmd.utils.AdminUtils;
-import org.jmd.utils.SQLUtils;
+import org.jmd.utils.*;
 import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationException;
 import java.sql.*;
 import java.util.ArrayList;
@@ -65,19 +64,19 @@ public class EtablissementService {
                 stmt.execute("INSERT INTO ETABLISSEMENT (nom, ville) VALUES ('" + nom + "', '" + ville + "')");
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                 if(stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
                 if(ex instanceof MySQLIntegrityConstraintViolationException){
@@ -91,14 +90,14 @@ public class EtablissementService {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
                 if (connexion != null){
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -136,6 +135,7 @@ public class EtablissementService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -146,36 +146,40 @@ public class EtablissementService {
                 stmt.executeUpdate("DELETE FROM ETABLISSEMENT WHERE (ID = " + id + ")");
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-                if(stmt != null){
+                Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-                if (connexion != null){
+                
+                if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException exc) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
                     }
-                }                
+                }     
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-                if (connexion != null){
+                
+                if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -219,48 +223,34 @@ public class EtablissementService {
                 etablissements.add(etablissement);
             }
         } catch (SQLException ex) {
-            Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {
-            if( results != null ) {
+            if (results != null ) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }
         
         return etablissements;
     }
-    
-    /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
-     */
-    /*
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }*/
 }
