@@ -256,7 +256,7 @@ public class AnneeService {
             stmt1 = connexion.createStatement();
             stmt2 = connexion.createStatement();
             stmt3 = connexion.createStatement();
-            results1 = stmt1.executeQuery("SELECT ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
+            results1 = stmt1.executeQuery("SELECT ANNEE.DECOUPAGE, ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
 
             while (results1.next()) {
                 a = new Annee();
@@ -267,6 +267,7 @@ public class AnneeService {
                 a.setIsLastYear(results1.getBoolean("ANNEE.IS_LAST_YEAR"));
                 a.setNomEtablissement(results1.getString("ETABLISSEMENT.NOM"));
                 a.setNomDiplome(results1.getString("DIPLOME.NOM"));
+                a.setDecoupage(results1.getString("ANNEE.DECOUPAGE"));
 
                 // Récupération des UEs pour une année
                 stmt2 = connexion.createStatement();
