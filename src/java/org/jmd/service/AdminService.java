@@ -135,6 +135,174 @@ public class AdminService {
         }
     }
     
+    @Path("follow")
+    @GET
+    public Response follow(
+            @QueryParam("idAnnee")
+                int idAnnee,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        int idAdmin = 0;
+                
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                results = stmt.executeQuery("SELECT ID " +
+                                                  "FROM ADMINISTRATEUR " +
+                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                
+                while (results.next()) {    
+                    idAdmin = results.getInt("ID");
+                }
+                
+                stmt.execute("INSERT INTO ADMIN_FOLLOWER (ID_ADMIN, ID_ANNEE) VALUES (" + idAdmin + ", " + idAnnee + ");");
+                
+                results.close();
+                stmt.close();
+                connexion.close();
+                
+                return Response.status(200).build();
+            } else {
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+
+            if (ex instanceof MySQLIntegrityConstraintViolationException) {
+                return Response.status(403).entity("DUPLICATE_ENTRY").build();
+            }
+
+            return Response.status(500).build();
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
+    @Path("unfollow")
+    @GET
+    public Response unfollow(
+            @QueryParam("idAnnee")
+                int idAnnee,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        int idAdmin = 0;
+                
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                results = stmt.executeQuery("SELECT ID " +
+                                                  "FROM ADMINISTRATEUR " +
+                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                
+                while (results.next()) {    
+                    idAdmin = results.getInt("ID");
+                }
+                
+                stmt.execute("DELETE FROM ADMIN_FOLLOWER WHERE (ID_ADMIN = " + idAdmin + ") AND (ID_ANNEE = " + idAnnee + ");");
+                
+                results.close();
+                stmt.close();
+                connexion.close();
+                
+                return Response.status(200).build();
+            } else {
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+
+            if (ex instanceof MySQLIntegrityConstraintViolationException) {
+                return Response.status(403).entity("DUPLICATE_ENTRY").build();
+            }
+
+            return Response.status(500).build();
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
     /**
      * Méthode permettant de déconnecter un utilisateur.
      * Elle va supprimer le token et le timestamp de l'utilisateur spécifié.

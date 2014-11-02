@@ -47,22 +47,14 @@ public class AnneeService {
      */
     @PUT
     public Response creer(
-            @QueryParam("nom") 
-                    String nom,
-            @QueryParam("decoupage") 
-                    String decoupage,
-            @QueryParam("isLastYear") 
-                    boolean isLastYear,
-            @QueryParam("idEtablissement") 
-                    String idEtablissement,
-            @QueryParam("idDiplome") 
-                    String idDiplome,
-            @QueryParam("pseudo") 
-                    String pseudo,
-            @QueryParam("token") 
-                    String token,
-            @QueryParam("timestamp") 
-                    long timestamp) {
+            @QueryParam("nom") String nom,
+            @QueryParam("decoupage") String decoupage,
+            @QueryParam("isLastYear") boolean isLastYear,
+            @QueryParam("idEtablissement") String idEtablissement,
+            @QueryParam("idDiplome") String idDiplome,
+            @QueryParam("pseudo") String pseudo,
+            @QueryParam("token") String token,
+            @QueryParam("timestamp") long timestamp) {
 
         Connection connexion = null;
         Statement stmt = null;
@@ -139,25 +131,23 @@ public class AnneeService {
      */
     @DELETE
     public Response supprimer(
-            @QueryParam("id") 
-                    String id,
-            @QueryParam("pseudo") 
-                    String pseudo,
-            @QueryParam("token") 
-                    String token,
-            @QueryParam("timestamp") 
-                    long timestamp) {
+            @QueryParam("id") String id,
+            @QueryParam("pseudo") String pseudo,
+            @QueryParam("token") String token,
+            @QueryParam("timestamp") long timestamp) {
 
         Connection connexion = null;
-        Statement stmt = null;
+        Statement stmt1 = null;
+        Statement stmt2 = null;
         ResultSet results1 = null;
         ResultSet results2 = null;
 
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
-                stmt = connexion.createStatement();
-                results1 = stmt.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + id + ")");
+                stmt1 = connexion.createStatement();
+                stmt2 = connexion.createStatement();
+                results1 = stmt1.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + id + ")");
 
                 ArrayList<Integer> idUEList = new ArrayList<>();
                 ArrayList<Integer> idMatiereList = new ArrayList<>();
@@ -165,7 +155,7 @@ public class AnneeService {
                 while (results1.next()) {
                     idUEList.add(results1.getInt("ID"));
 
-                    results2 = stmt.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results1.getInt("ID") + ")");
+                    results2 = stmt2.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results1.getInt("ID") + ")");
 
                     while (results2.next()) {
                         idMatiereList.add(results2.getInt("ID"));
@@ -174,21 +164,53 @@ public class AnneeService {
 
                 // Suppression des matières de l'année.
                 for (Integer idMatiereListe : idMatiereList) {
-                    stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereListe + ")");
+                    stmt2.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereListe + ")");
                 }
 
                 // Suppression des UE de l'année.
                 for (Integer idUEListe : idUEList) {
-                    stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEListe + ")");
+                    stmt2.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEListe + ")");
                 }
 
-                stmt.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
+                stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
+                
+                results1.close();
+                results2.close();
+                
+                stmt1.close();
+                stmt2.close();
+                
+                connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
 
-                if (stmt != null) {
+                if (results1 != null) {
                     try {
-                        stmt.close();
+                        results1.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+
+                if (results2 != null) {
+                    try {
+                        results2.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+
+                if (stmt1 != null) {
+                    try {
+                        stmt1.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                
+                if (stmt2 != null) {
+                    try {
+                        stmt2.close();
                     } catch (SQLException exc) {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
@@ -203,22 +225,6 @@ public class AnneeService {
                 }
 
                 return Response.status(500).build();
-            } finally {
-                if (stmt != null) {
-                    try {
-                        stmt.close();
-                    } catch (SQLException ex) {
-                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
-
-                if (connexion != null) {
-                    try {
-                        connexion.close();
-                    } catch (SQLException ex) {
-                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-                    }
-                }
             }
         } else {
             return Response.status(401).build();
@@ -239,8 +245,7 @@ public class AnneeService {
     @Path("getCompleteYear")
     @Produces("application/json;charset=utf-8")
     public Annee getCompleteYear(
-            @QueryParam("idAnnee") 
-                    String idAnnee) {
+            @QueryParam("idAnnee") String idAnnee) {
 
         Annee a = null;
         Connection connexion = null;
@@ -381,10 +386,8 @@ public class AnneeService {
     @Path("getAnnees")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnnees(
-            @QueryParam("idDiplome") 
-                    String idDiplome,
-            @QueryParam("idEtablissement") 
-                    String idEtablissement) {
+            @QueryParam("idDiplome") String idDiplome,
+            @QueryParam("idEtablissement") String idEtablissement) {
 
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
@@ -450,8 +453,7 @@ public class AnneeService {
     @Path("getAnneesByDiplome")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnneesByDiplome(
-            @QueryParam("idDiplome") 
-                    String idDiplome) {
+            @QueryParam("idDiplome") String idDiplome) {
 
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
