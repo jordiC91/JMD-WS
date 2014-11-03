@@ -48,9 +48,9 @@ public class UEService {
             @QueryParam("yearType")
                     String yearType,
             @QueryParam("idAnnee")
-                    int idAnnee,
+                    final int idAnnee,
             @QueryParam("pseudo")
-                    String pseudo,
+                    final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
@@ -64,7 +64,7 @@ public class UEService {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE) VALUES ('" + nom + "','"+ yearType +"',"+idAnnee+");");
-                stmt.close();
+                stmt.close(); 
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -104,6 +104,13 @@ public class UEService {
                 }
             }
             
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                   AdminUtils.notify(pseudo, idAnnee);
+                }
+            }).start();
+
             return Response.status(200).build();
         } else {
             return Response.status(401).build();
@@ -129,9 +136,9 @@ public class UEService {
     @DELETE
     public Response supprimer(
             @QueryParam("id")
-                    String id,
+                    final int id,
             @QueryParam("pseudo")
-                    String pseudo,
+                    final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
@@ -184,6 +191,13 @@ public class UEService {
                     }
                 }
             }
+            
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                   AdminUtils.notify(pseudo, id);
+                }
+            }).start();
             
             return Response.status(200).build();
         } else {

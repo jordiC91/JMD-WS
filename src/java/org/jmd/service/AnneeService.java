@@ -147,7 +147,7 @@ public class AnneeService {
                 connexion = SQLUtils.getConnexion();
                 stmt1 = connexion.createStatement();
                 stmt2 = connexion.createStatement();
-                
+
                 results1 = stmt1.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + id + ")");
 
                 ArrayList<Integer> idUEList = new ArrayList<>();
@@ -162,14 +162,14 @@ public class AnneeService {
                     while (results2.next()) {
                         idMatiereList.add(results2.getInt("ID"));
                     }
-                   
+
                     results2.close();
                     stmt2.close();
                 }
-                
+
                 results1.close();
                 stmt1.close();
-                
+
                 stmt2 = connexion.createStatement();
 
                 // Suppression des matières de l'année.
@@ -184,7 +184,7 @@ public class AnneeService {
 
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
                 stmt2.close();
-                
+
                 connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -212,7 +212,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-                
+
                 if (stmt2 != null) {
                     try {
                         stmt2.close();
@@ -391,7 +391,9 @@ public class AnneeService {
     @Path("getAnnees")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnnees(
-            @QueryParam("idDiplome") String idDiplome,
+            @QueryParam("idDiplome") 
+                    
+                    String idDiplome,
             @QueryParam("idEtablissement") String idEtablissement) {
 
         ArrayList<Annee> annees = new ArrayList<>();
@@ -443,6 +445,179 @@ public class AnneeService {
         }
 
         return annees;
+    }
+    
+    private boolean isFollowed (int idAnnee, int idAdmin) {
+        boolean isFollowed = false;
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT * "
+                    + "FROM ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
+                    + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
+                        + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
+                        + "AND (ADMINISTRATEUR.ID = " + idAdmin +") "
+                        + "AND (ANNEE.ID = " + idAnnee + ");");
+
+            while (results.next()) {
+                if (results.getInt("ANNEE.ID") == idAnnee) {
+                    isFollowed = true;
+                }
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return isFollowed;
+    }
+
+    @GET
+    @Path("getAnneesFollowedByDiplome")
+    @Produces("application/json;charset=utf-8")
+    public Response getAnneesFollowedByDiplome(
+            @QueryParam("idDiplome") 
+                    String idDiplome,
+            @QueryParam("pseudo") 
+                    String pseudo,
+            @QueryParam("token") 
+                    String token,
+            @QueryParam("timestamp") 
+                    long timestamp) {
+
+        ArrayList<Annee> annees = new ArrayList<>();
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                results = stmt.executeQuery("SELECT ID " +
+                                                  "FROM ADMINISTRATEUR " +
+                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                
+                int idAdmin = 0;
+                
+                while (results.next()) {    
+                    idAdmin = results.getInt("ID");
+                }
+                
+                results.close();
+                stmt.close();
+                
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT * "
+                        + "FROM ANNEE, ETABLISSEMENT "
+                        + "WHERE (ID_DIPLOME=" + idDiplome + ") "
+                            + "AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
+
+                Annee a = null;
+
+                while (results.next()) {
+                    a = new Annee();
+                    a.setIdAnnee(results.getInt("ANNEE.ID"));
+                    a.setNom(results.getString("ANNEE.NOM"));
+                    a.setIdEtablissement(results.getInt("ID_ETABLISSEMENT"));
+                    a.setIdDiplome(results.getInt("ID_DIPLOME"));
+                    a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
+                    a.setDecoupage(results.getString("DECOUPAGE"));
+                    a.setIsFollowed(isFollowed(a.getIdAnnee(), idAdmin));
+                    
+                    Etablissement e = new Etablissement();
+                    e.setIdEtablissement(results.getInt("ETABLISSEMENT.ID"));
+                    e.setNom(results.getString("ETABLISSEMENT.NOM"));
+                    e.setVille(results.getString("VILLE"));
+                    a.setEtablissement(e);
+
+                    annees.add(a);
+                }
+            } else {
+                if (results != null) {
+                    try {
+                        results.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return Response.status(200).entity(annees.toArray(new Annee[annees.size()])).build();
     }
 
     /**

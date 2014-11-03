@@ -417,7 +417,7 @@ public class AdminService {
             
             String subject = "JMD - Mot de passe oublié";
             
-            sendMail(subject, text, emailAdmin);
+            AdminUtils.sendMail(subject, text, emailAdmin);
             
             return Response.status(200).build();
         } catch (SQLException ex) {
@@ -616,7 +616,7 @@ public class AdminService {
                 
                 String subject = "JMD - Nouveau mot de passe";
                 
-                sendMail(subject, text, emailAdmin);
+                AdminUtils.sendMail(subject, text, emailAdmin);
                 
                 stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + AdminUtils.sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
             }
@@ -981,47 +981,5 @@ public class AdminService {
         }
         
         return Response.status(200).build();
-    }
-    
-    /**
-     * Méthode permettant d'envoyer un mail.
-     *
-     * @param subject Le sujet du mai.
-     * @param text Le contenu du mail.
-     * @param to Le destinataire du mail.
-     */
-    private void sendMail(String subject, String text, String to) {
-        Properties properties = System.getProperties();
-        properties.put("mail.smtp.user", "jaimondiplome@gmail.com");
-        properties.put("mail.smtp.host", "smtp.gmail.com");
-        properties.put("mail.smtp.port", 465);
-        properties.put("mail.smtp.starttls.enable","true");
-        properties.put("mail.smtp.debug", "true");
-        properties.put("mail.smtp.auth", "true");
-        properties.put("mail.smtp.socketFactory.port", 465);
-        properties.put("mail.smtp.socketFactory.class", "javax.net.ssl.SSLSocketFactory");
-        properties.put("mail.smtp.socketFactory.fallback", "false");
-        
-        Session session = Session.getInstance(properties,
-                new javax.mail.Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(Constantes.EMAIL_JMD, Constantes.PASSWORD_JMD);
-                    }
-                }
-        );
-        
-        try {
-            MimeMessage message = new MimeMessage(session);
-            
-            message.setFrom(new InternetAddress(Constantes.EMAIL_JMD));
-            message.addRecipient(Message.RecipientType.TO, new InternetAddress(to));
-            message.setSubject(subject);
-            message.setContent(text, "text/html; charset=utf-8");
-            
-            Transport.send(message);
-        } catch (MessagingException e) {
-            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, e);
-        }
     }
 }

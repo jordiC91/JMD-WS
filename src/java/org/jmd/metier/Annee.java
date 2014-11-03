@@ -53,6 +53,9 @@ public class Annee {
     
     // Non en base.
     
+    @XmlElement(name="isFollowed")
+    private boolean isFollowed;
+    
     private String nomEtablissement;
     
     private String nomDiplome;
@@ -112,6 +115,10 @@ public class Annee {
     
     // Non en base.
     
+    public boolean isFollowed() {
+        return isFollowed;
+    }
+    
     public String getNomEtablissement() {
         return nomEtablissement;
     }
@@ -153,6 +160,10 @@ public class Annee {
     }
 
     // Non en base.
+    
+    public void setIsFollowed(boolean isFollowed) {
+        this.isFollowed = isFollowed;
+    }
     
     public void setNomEtablissement(String nomEtablissement) {
         this.nomEtablissement = nomEtablissement;
