@@ -147,6 +147,7 @@ public class AnneeService {
                 connexion = SQLUtils.getConnexion();
                 stmt1 = connexion.createStatement();
                 stmt2 = connexion.createStatement();
+                
                 results1 = stmt1.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + id + ")");
 
                 ArrayList<Integer> idUEList = new ArrayList<>();
@@ -155,12 +156,21 @@ public class AnneeService {
                 while (results1.next()) {
                     idUEList.add(results1.getInt("ID"));
 
+                    stmt2 = connexion.createStatement();
                     results2 = stmt2.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results1.getInt("ID") + ")");
 
                     while (results2.next()) {
                         idMatiereList.add(results2.getInt("ID"));
                     }
+                   
+                    results2.close();
+                    stmt2.close();
                 }
+                
+                results1.close();
+                stmt1.close();
+                
+                stmt2 = connexion.createStatement();
 
                 // Suppression des matières de l'année.
                 for (Integer idMatiereListe : idMatiereList) {
@@ -173,11 +183,6 @@ public class AnneeService {
                 }
 
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
-                
-                results1.close();
-                results2.close();
-                
-                stmt1.close();
                 stmt2.close();
                 
                 connexion.close();
