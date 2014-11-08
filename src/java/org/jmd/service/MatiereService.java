@@ -52,24 +52,50 @@ public class MatiereService {
             @QueryParam("isOption")
                     boolean isOption,
             @QueryParam("idUE")
-                    int idUE,
+                    final int idUE,
             @QueryParam("pseudo")
-                    String pseudo,
+                    final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
         
+        int idAnnee = 0;
+        
         Connection connexion = null;
         Statement stmt = null;
+        ResultSet r = null;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
+                stmt.close();
+                
+                stmt = connexion.createStatement();
+                r = stmt.executeQuery("SELECT ANNEE.ID "
+                                    + "FROM ANNEE, UE, MATIERE "
+                                    + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
+                                        + "AND (UE.ID = MATIERE.ID_UE) "
+                                        + "AND (UE.ID = " + idUE + ");");
+                
+                while (r.next()) {
+                    idAnnee = r.getInt("ANNEE.ID");
+                }
+                
+                r.close();
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if (r != null){
+                    try {
+                        r.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 
                 if (stmt != null){
                     try {
@@ -90,6 +116,14 @@ public class MatiereService {
                 return Response.status(500).build();
             } 
             finally {
+                if (r != null){
+                    try {
+                        r.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                
                 if (stmt != null){
                     try {
                         stmt.close();
@@ -105,6 +139,15 @@ public class MatiereService {
                     }
                 }
             }
+            
+            final int idAnneeFin = idAnnee;
+            
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                   AdminUtils.notify(pseudo, idAnneeFin);
+                }
+            }).start();
             
             return Response.status(200).build();
         } else {
@@ -134,22 +177,48 @@ public class MatiereService {
             @QueryParam("id")
                     String id,
             @QueryParam("pseudo")
-                    String pseudo,
+                    final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
         
+        int idAnnee = 0;
+        
         Connection connexion = null;
         Statement stmt = null;
+        ResultSet r = null;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
+                stmt.close();
+                
+                stmt = connexion.createStatement();
+                r = stmt.executeQuery("SELECT ANNEE.ID "
+                                    + "FROM ANNEE, UE, MATIERE "
+                                    + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
+                                        + "AND (UE.ID = MATIERE.ID_UE) "
+                                        + "AND (MATIERE.ID = " + id + ");");
+                
+                while (r.next()) {
+                    idAnnee = r.getInt("ANNEE.ID");
+                }
+                
+                r.close();
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if (r != null){
+                    try {
+                        r.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 
                 if (stmt != null){
                     try {
@@ -170,6 +239,14 @@ public class MatiereService {
                 return Response.status(500).build();
             }
             finally {
+                if (r != null){
+                    try {
+                        r.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                
                 if (stmt != null){
                     try {
                         stmt.close();
@@ -186,6 +263,16 @@ public class MatiereService {
                     }
                 }
             }
+            
+            final int idAnneeFin = idAnnee;
+            
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                   AdminUtils.notify(pseudo, idAnneeFin);
+                }
+            }).start();
+            
             return Response.status(200).build();
         } else {
             return Response.status(401).build();

@@ -75,28 +75,22 @@ public class AdminUtils {
         }
     }
 
+    /**
+     * Méthode permettant de notifier par mail les administrateurs suivant l'année
+     * spécifiée en argument lors d'une modification de celle-ci.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la modification.
+     * @param idAnnee L'identificant de l'année modifiée.
+     */
     public static void notify(String pseudo, int idAnnee) {
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
 
         try {
-            connexion = SQLUtils.getConnexion();
+            connexion = SQLUtils.getConnexion();            
             stmt = connexion.createStatement();
             
-            results = stmt.executeQuery("SELECT ID " +
-                                            "FROM ADMINISTRATEUR " +
-                                            "WHERE (PSEUDO = '" + pseudo + "');");
-            
-            int idAdmin = 0;
-            
-            while (results.next()) {    
-                idAdmin = results.getInt("ID");
-            }
-            
-            stmt.close();
-            
-            stmt = connexion.createStatement();
             results = stmt.executeQuery("SELECT * "
                     + "FROM ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
                     + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
@@ -108,12 +102,16 @@ public class AdminUtils {
                     String sujet = "JMD - Modification d'une année suivi";
                     
                     String text = "Bonjour<br />"
-                            + "Une modification a été effectuée par '" + pseudo + "' sur l'année '" + results.getString("ANNEE.NOM")+ "' que vous suivez."
+                            + "Une modification a été effectuée par '" + pseudo + "' sur l'année suivante :<br />"
+                            + "- Diplôme : '" + results.getString("DIPLOME.NOM") + "'.<br />"
+                            + "- Année : '" + results.getString("ANNEE.NOM") + "'."
                             + "<br /><br />"
                             + "Cordialement,<br />"
                             + "L'équipe de JMD,";
                     
                     sendMail(sujet, text, results.getString("ADMINISTRATEUR.EMAIL"));
+                    
+                    break;
                 }
             }
 
@@ -276,6 +274,12 @@ public class AdminUtils {
         return isOK;
     }
 
+    /**
+     * Méthode permettant de déconnecter un utilisateur (TOKEN à null et TIMESTAMP
+     * à 0).
+     * 
+     * @param pseudo Le pseudo de l'administrateur à déconnecter.
+     */
     private static void logout(String pseudo) {
         Connection connexion = null;
         Statement stmt = null;

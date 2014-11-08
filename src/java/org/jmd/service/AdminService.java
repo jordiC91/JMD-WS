@@ -5,8 +5,6 @@ import com.mysql.jdbc.exceptions.jdbc4.MySQLIntegrityConstraintViolationExceptio
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
-import javax.mail.*;
-import javax.mail.internet.*;
 import javax.ws.rs.*;
 import javax.ws.rs.core.*;
 import org.jmd.*;

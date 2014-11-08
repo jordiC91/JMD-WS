@@ -392,9 +392,9 @@ public class AnneeService {
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnnees(
             @QueryParam("idDiplome") 
-                    
                     String idDiplome,
-            @QueryParam("idEtablissement") String idEtablissement) {
+            @QueryParam("idEtablissement") 
+                    String idEtablissement) {
 
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
