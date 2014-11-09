@@ -36,6 +36,9 @@ public class UE {
      */
     @XmlElement
     private ArrayList<Matiere> matieres;
+    
+    @XmlElement(name="regles")
+    private ArrayList<Regle> listeRegles = new ArrayList();
 
     /**
      * Constructeur par défaut de la classe.
@@ -98,6 +101,10 @@ public class UE {
         return this.idAnnee;
     }
     
+    public ArrayList<Regle> getListeRegles() {
+        return this.listeRegles;
+    }
+    
     /* Setters. */
 
     /**
@@ -134,5 +141,9 @@ public class UE {
      */
     public void setIdAnnee(int idAnnee) {
         this.idAnnee = idAnnee;
+    }
+    
+    public void setListeRegles(ArrayList<Regle> listeRegles) {
+        this.listeRegles = listeRegles;
     }
 }

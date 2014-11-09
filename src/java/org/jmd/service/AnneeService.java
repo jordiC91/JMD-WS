@@ -254,18 +254,26 @@ public class AnneeService {
 
         Annee a = null;
         Connection connexion = null;
+        
         Statement stmt1 = null;
         Statement stmt2 = null;
         Statement stmt3 = null;
+        Statement stmt4 = null;
+        Statement stmt5 = null;
+        
         ResultSet results1 = null;
         ResultSet results2 = null;
         ResultSet results3 = null;
-
+        ResultSet results4 = null;
+        ResultSet results5 = null;
+        
         try {
             connexion = SQLUtils.getConnexion();
+            
             stmt1 = connexion.createStatement();
             stmt2 = connexion.createStatement();
             stmt3 = connexion.createStatement();
+            
             results1 = stmt1.executeQuery("SELECT ANNEE.DECOUPAGE, ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
 
             while (results1.next()) {
@@ -288,6 +296,32 @@ public class AnneeService {
                     ue.setIdUE(results2.getInt("ID"));
                     ue.setYearType(results2.getString("YEAR_TYPE"));
                     ue.setNom(results2.getString("NOM"));
+                    
+                    stmt5 = connexion.createStatement();
+                    results5 = stmt5.executeQuery("SELECT * "
+                                                + "FROM UE, REGLE "
+                                                + "WHERE (UE.ID = REGLE.ID_UE) "
+                                                + "AND (UE.ID = " + ue.getIdUE() + ");");
+
+                    ArrayList<Regle> listeRegles = new ArrayList<>();
+                    Regle r = null;
+
+                    while (results5.next()) {
+                        r = new Regle();
+                        r.setId(results5.getInt("REGLE.ID"));
+                        r.setIdAnnee(results5.getInt("REGLE.ID_ANNEE"));
+                        r.setIdUE(results5.getInt("REGLE.ID_UE"));
+                        r.setOperateur(results5.getInt("REGLE.OPERATEUR"));
+                        r.setRegle(results5.getInt("REGLE.REGLE"));
+                        r.setValeur(results5.getInt("REGLE.VALEUR"));
+
+                        listeRegles.add(r);
+                    }
+
+                    ue.setListeRegles(listeRegles);
+                        
+                    results5.close();
+                    stmt5.close();
 
                     // Récupération des matières pour une UE
                     stmt3 = connexion.createStatement();
@@ -299,11 +333,39 @@ public class AnneeService {
                         matiere.setIdMatiere(results3.getInt("ID"));
                         matiere.setIsOption(results3.getBoolean("IS_OPTION"));
                         matiere.setNom(results3.getString("NOM"));
+                        
+                        stmt4 = connexion.createStatement();
+                        results4 = stmt4.executeQuery("SELECT * "
+                                                + "FROM MATIERE, REGLE "
+                                                + "WHERE (MATIERE.ID = REGLE.ID_MATIERE) "
+                                                + "AND (MATIERE.ID = " + matiere.getIdMatiere() + ");");
+
+                        listeRegles = new ArrayList<>();
+                        r = null;
+
+                        while (results4.next()) {
+                            r = new Regle();
+                            r.setId(results4.getInt("REGLE.ID"));
+                            r.setIdAnnee(results4.getInt("REGLE.ID_ANNEE"));
+                            r.setIdUE(results4.getInt("REGLE.ID_UE"));
+                            r.setOperateur(results4.getInt("REGLE.OPERATEUR"));
+                            r.setRegle(results4.getInt("REGLE.REGLE"));
+                            r.setValeur(results4.getInt("REGLE.VALEUR"));
+
+                            listeRegles.add(r);
+                        }
+
+                        matiere.setListeRegles(listeRegles);
+                        
+                        results4.close();
+                        stmt4.close();
+                        
                         ue.addMatiere(matiere);
                     }
 
                     results3.close();
                     stmt3.close();
+                    
                     a.addUE(ue);
                 }
 
