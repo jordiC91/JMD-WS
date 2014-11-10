@@ -92,8 +92,9 @@ public class AdminUtils {
             stmt = connexion.createStatement();
             
             results = stmt.executeQuery("SELECT * "
-                    + "FROM ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
-                    + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
+                    + "FROM DIPLOME, ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
+                    + "WHERE (DIPLOME.ID = ANNEE.ID_DIPLOME) "
+                        + "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
                         + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
                         + "AND (ANNEE.ID = " + idAnnee + ");");
 

@@ -51,6 +51,9 @@ public class Annee {
     @XmlElement(name="ues")
     private ArrayList<UE> ues;
     
+    @XmlElement(name="regles")
+    private ArrayList<Regle> listeRegles = new ArrayList();
+    
     // Non en base.
     
     @XmlElement(name="isFollowed")
@@ -113,6 +116,10 @@ public class Annee {
         return idDiplome;
     }
     
+    public ArrayList<Regle> getListeRegles() {
+        return this.listeRegles;
+    }
+    
     // Non en base.
     
     public boolean isFollowed() {
@@ -157,6 +164,10 @@ public class Annee {
 
     public void setIdDiplome(int idDiplome) {
         this.idDiplome = idDiplome;
+    }
+    
+    public void setListeRegles(ArrayList<Regle> listeRegles) {
+        this.listeRegles = listeRegles;
     }
 
     // Non en base.
