@@ -45,24 +45,36 @@ public class Annee {
      */
     private int idDiplome;
     
+    @XmlElement(name="isFollowed")
+    private boolean isFollowed;
+    
     /**
      * La liste des UE de l'année.
      */
     @XmlElement(name="ues")
-    private ArrayList<UE> ues;
+    private ArrayList<UE> listeUEs;
     
+    /**
+     * La liste des règmes de gestion de l'année.
+     */
     @XmlElement(name="regles")
     private ArrayList<Regle> listeRegles = new ArrayList();
     
     // Non en base.
     
-    @XmlElement(name="isFollowed")
-    private boolean isFollowed;
-    
+    /**
+     * Le nom de l'établissement où l'année est rattachée.
+     */
     private String nomEtablissement;
     
+    /**
+     * Le nom du diplôme lié où l'année est rattachée.
+     */
     private String nomDiplome;
 
+    /**
+     * L'établissement où l'année est rattachée.
+     */
     private Etablissement eta;
     
     /**
@@ -81,25 +93,40 @@ public class Annee {
      * <b>false</b> sinon.
      */
     public boolean addUE(UE ue) {
-        if (this.ues == null) {
-            this.ues = new ArrayList<>();
+        if (this.listeUEs == null) {
+            this.listeUEs = new ArrayList<>();
         }
         
-        return this.ues.add(ue);
+        return this.listeUEs.add(ue);
     } 
     
     /* Getters. */
     
     // En base.
     
+    /**
+     * Méthode retournant l'identifiant de l'année.
+     * 
+     * @return L'identifiant de l'année.
+     */
     public int getIdAnnee() {
         return idAnnee;
     }
     
+    /**
+     * Méthode retournant le nom de l'année.
+     * 
+     * @return Le nom de l'année.
+     */
     public String getNom() {
         return nom;
     }
     
+    /**
+     * Méthode retournant le découpage (SEMESTRE / NULL / TRIMESTRE) de l'année.
+     * 
+     * @return Le découpage de l'année.
+     */
     public String getDecoupage() {
         return decoupage;
     }
@@ -108,23 +135,47 @@ public class Annee {
         return isLastYear;
     }
     
+    /**
+     * Méthode retournant l'identifiant de l'établissement où l'année est rattachée.
+     * 
+     * @return L'identifiant de l'établissement où l'année est rattachée.
+     */
     public int getIdEtablissement() {
         return idEtablissement;
     }
     
+    /**
+     * Méthode retournant l'identifiant du diplôme où l'année est rattachée.
+     * 
+     * @return L'identifiant du diplôme où l'année est rattachée.
+     */
     public int getIdDiplome() {
         return idDiplome;
     }
     
+    public boolean isFollowed() {
+        return isFollowed;
+    }
+    
+    /**
+     * Méthode retournant la liste des règles de gestion de l'année.
+     * 
+     * @return La liste des règles de gestion de l'année.
+     */
     public ArrayList<Regle> getListeRegles() {
         return this.listeRegles;
     }
     
-    // Non en base.
-    
-    public boolean isFollowed() {
-        return isFollowed;
+    /**
+     * Méthode retournant la liste des UE de l'année.
+     * 
+     * @return La liste des UE de l'année.
+     */
+    public ArrayList<UE> getListeUE() {
+        return this.listeUEs;
     }
+    
+    // Non en base.
     
     public String getNomEtablissement() {
         return nomEtablissement;
@@ -142,10 +193,20 @@ public class Annee {
 
     // En base.
     
+    /**
+     * Méthode permettant de modifier l'identifiant de l'année.
+     * 
+     * @param idAnnee Le nouvel identifiant de l'année.
+     */
     public void setIdAnnee(int idAnnee) {
         this.idAnnee = idAnnee;
     }
 
+    /**
+     * Méthode permettant de modifier le nom de l'année.
+     * 
+     * @param nom Le nouveau nom de l'année.
+     */
     public void setNom(String nom) {
         this.nom = nom;
     }    
@@ -169,12 +230,16 @@ public class Annee {
     public void setListeRegles(ArrayList<Regle> listeRegles) {
         this.listeRegles = listeRegles;
     }
-
-    // Non en base.
     
     public void setIsFollowed(boolean isFollowed) {
         this.isFollowed = isFollowed;
     }
+    
+    public void setListeUE(ArrayList<UE> listeUE) {
+        this.listeUEs = listeUE;
+    }
+
+    // Non en base.
     
     public void setNomEtablissement(String nomEtablissement) {
         this.nomEtablissement = nomEtablissement;
