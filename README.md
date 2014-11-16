@@ -1,27 +1,39 @@
 # JMD-WS
 
-Ce projet est un module contenant l'ensemble des services web de JMD.
+This project is a module containing all the web services of JMD.
 
-JMD est un projet universitaire commencé en M1 MIAGE et terminé en M2 MIAGE par Jordi CHARPENTIER et Yoann VANHOESERLANDE.
+JMD is a university project started in "M1 MIAGE" and finished in "M2 MIAGE" by Jordi CARPENTER and Yoann VANHOESERLANDE.
 
-Son but est de fournir aux étudiants une application permettant de calculer leur moyenne et de simuler l'obtention de leur diplôme en temps réel.
+Its purpose is to provide to the students with application to calculate their average and simulate their graduation in real time.
 
-Site internet du projet : [JMD](https://www.jordi-charpentier.com/jmd).
+Several other features are also available.
+Examples:
+- For students: export one year as PDF.
+- For administrators: tracking changes from one year (mail for each change).
 
-### Contenu 
+### Technologies used on the project
 
-- AuthentificationService :
-- DiplomeService :
-- AnneeService :
-- EtablissementService :
-- UEService :
-- MatiereService :
+- Webservices : Java (+ JAX-RS library).
+- iOS application : Swift
+- Android application : Java
+- Database : MySQL.
 
-### Technologies utilisées 
+### Content 
 
-TO-DO
+List of the services of the module :
+- AdminService 
 
-### Exemple
+For each of those services, at least 2 methods are offered ("create" and "delete").
+- RegleService 
+- DiplomeService
+- AnneeService 
+- EtablissementService 
+- UEService 
+- MatiereService 
+ 
+### Example
+
+Example of one method on "MatiereService" :
 
 ```java
 @GET
@@ -30,7 +42,7 @@ TO-DO
 public ArrayList<Matiere> getAllByUE(@PathParam("idUE") 
                                      int idUE) {
         
-	ArrayList<Matiere> matieres = new ArrayList<>();
+    ArrayList<Matiere> matieres = new ArrayList<>();
                 
     if (connexion == null) {
     	connexion = SQLUtils.getConnexion();
@@ -38,9 +50,10 @@ public ArrayList<Matiere> getAllByUE(@PathParam("idUE")
         
     try {
         Statement stmt = connexion.createStatement();
-        ResultSet results = stmt.executeQuery(  "SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
-                                                "FROM MATIERE, UE " +
-                                                "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID)");
+        ResultSet results = stmt.executeQuery( 
+        	"SELECT * " +
+                "FROM MATIERE, UE " +
+                "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID)");
             
         Matiere m = null;
             
@@ -60,6 +73,6 @@ public ArrayList<Matiere> getAllByUE(@PathParam("idUE")
     	Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
     }
 
-	return matieres;
+    return matieres;
 }
 ```
