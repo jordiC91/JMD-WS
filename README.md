@@ -1,6 +1,6 @@
 # JMD-WS
 
-This project is a module containing all the web services of JMD.
+This Github project is a module containing all the web services of JMD.
 
 JMD is a university project started in "M1 MIAGE" and finished in "M2 MIAGE" by Jordi CARPENTER and Yoann VANHOESERLANDE.
 
