@@ -45,6 +45,9 @@ public class Annee {
      */
     private int idDiplome;
     
+    /**
+     * Booléen permettant de savoir si l'année est suivie, ou non.
+     */
     @XmlElement(name="isFollowed")
     private boolean isFollowed;
     
@@ -61,12 +64,7 @@ public class Annee {
     private ArrayList<Regle> listeRegles = new ArrayList();
     
     // Non en base.
-    
-    /**
-     * Le nom de l'établissement où l'année est rattachée.
-     */
-    private String nomEtablissement;
-    
+
     /**
      * Le nom du diplôme lié où l'année est rattachée.
      */
@@ -110,7 +108,7 @@ public class Annee {
      * @return L'identifiant de l'année.
      */
     public int getIdAnnee() {
-        return idAnnee;
+        return this.idAnnee;
     }
     
     /**
@@ -119,7 +117,7 @@ public class Annee {
      * @return Le nom de l'année.
      */
     public String getNom() {
-        return nom;
+        return this.nom;
     }
     
     /**
@@ -128,11 +126,17 @@ public class Annee {
      * @return Le découpage de l'année.
      */
     public String getDecoupage() {
-        return decoupage;
+        return this.decoupage;
     }
     
+    /**
+     * Méthode retournant le booléen permettant de savoir si l'année est la dernière du diplôme.
+     * 
+     * @return <b>true</b> si l'année est suivie.
+     * <b>false</b> sinon.
+     */
     public boolean isIsLastYear() {
-        return isLastYear;
+        return this.isLastYear;
     }
     
     /**
@@ -141,7 +145,7 @@ public class Annee {
      * @return L'identifiant de l'établissement où l'année est rattachée.
      */
     public int getIdEtablissement() {
-        return idEtablissement;
+        return this.idEtablissement;
     }
     
     /**
@@ -150,11 +154,17 @@ public class Annee {
      * @return L'identifiant du diplôme où l'année est rattachée.
      */
     public int getIdDiplome() {
-        return idDiplome;
+        return this.idDiplome;
     }
     
+    /**
+     * Méthode retournant le booléen permettant de savoir si l'année est suivie.
+     * 
+     * @return <b>true</b> si l'année est suivie.
+     * <b>false</b> sinon.
+     */
     public boolean isFollowed() {
-        return isFollowed;
+        return this.isFollowed;
     }
     
     /**
@@ -176,17 +186,23 @@ public class Annee {
     }
     
     // Non en base.
-    
-    public String getNomEtablissement() {
-        return nomEtablissement;
-    }
 
+    /**
+     * Méthode retournant le nom du diplôme où est rattachée l'année.
+     * 
+     * @return Le nom du diplôme où est rattachée l'année.
+     */
     public String getNomDiplome() {
-        return nomDiplome;
+        return this.nomDiplome;
     }
     
+    /**
+     * Méthode retournant l'établissement où est rattachée l'année.
+     * 
+     * @return L'établissement où est rattachée l'année.
+     */
     public Etablissement getEtablissement() {
-        return eta;
+        return this.eta;
     }
     
     /* Setters. */
@@ -240,15 +256,21 @@ public class Annee {
     }
 
     // Non en base.
-    
-    public void setNomEtablissement(String nomEtablissement) {
-        this.nomEtablissement = nomEtablissement;
-    }
 
+    /**
+     * Méthode permettant de modifier le nom du diplôme où est rattachée l'année.
+     * 
+     * @param nomDiplome Le nouveau nom du diplôme où est rattachée l'année.
+     */
     public void setNomDiplome(String nomDiplome) {
         this.nomDiplome = nomDiplome;
     }    
     
+    /**
+     * Méthode permettant de modifier l'établissement où est rattachée l'année.
+     * 
+     * @param eta Le nouvel établissement où sera rattachée l'année.
+     */
     public void setEtablissement(Etablissement eta) {
         this.eta = eta;
     }

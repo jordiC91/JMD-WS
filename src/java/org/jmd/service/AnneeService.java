@@ -39,11 +39,11 @@ public class AnneeService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
      *
-     * @return 4 possibilités : - Un code HTTP 200 si l'utilisateur ayant fait
-     * la demande de création est connecté (donc autorisé). - Un code HTTP 401
-     * si c'est un utilisateur non connecté (donc non autorisé) qui a fait la
-     * demande. - Un code HTTP 403 si l'année à créer existe déjà en base. - Un
-     * code HTTP 500 si une erreur SQL se produit.
+     * @return 4 possibilités : 
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est connecté (donc autorisé). 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) 
+     * qui a fait la demande. - Un code HTTP 403 si l'année à créer existe déjà en base. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
     public Response creer(
@@ -123,11 +123,11 @@ public class AnneeService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
      *
-     * @return 3 possibilités : - Un code HTTP 200 si l'utilisateur ayant fait
-     * la demande de suppression est connecté (donc autorisé) et si la
-     * suppression s'est bien faite. - Un code HTTP 401 si c'est un utilisateur
-     * non connecté (donc non autorisé) qui a fait la demande. - Un code HTTP
-     * 500 si une erreur SQL se produit.
+     * @return 3 possibilités : 
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression 
+     * est connecté (donc autorisé) et si la suppression s'est bien faite. 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @DELETE
     public Response supprimer(
@@ -250,7 +250,8 @@ public class AnneeService {
     @Path("getCompleteYear")
     @Produces("application/json;charset=utf-8")
     public Annee getCompleteYear(
-            @QueryParam("idAnnee") String idAnnee) {
+            @QueryParam("idAnnee") 
+                    String idAnnee) {
 
         Annee a = null;
         Connection connexion = null;
@@ -272,7 +273,10 @@ public class AnneeService {
             stmt2 = connexion.createStatement();
             stmt3 = connexion.createStatement();
             
-            results1 = stmt1.executeQuery("SELECT ANNEE.DECOUPAGE, ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, ETABLISSEMENT.NOM, DIPLOME.NOM FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
+            results1 = stmt1.executeQuery("SELECT ANNEE.DECOUPAGE, ANNEE.ID, ANNEE.NOM, ANNEE.ID_ETABLISSEMENT, ANNEE.ID_DIPLOME, ANNEE.IS_LAST_YEAR, "
+                    + "ETABLISSEMENT.NOM, ETABLISSEMENT.VILLE, ETABLISSEMENT.ID, "
+                    + "DIPLOME.NOM "
+                    + "FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
 
             while (results1.next()) {
                 a = new Annee();
@@ -281,9 +285,15 @@ public class AnneeService {
                 a.setIdEtablissement(results1.getInt("ANNEE.ID_ETABLISSEMENT"));
                 a.setIdDiplome(results1.getInt("ANNEE.ID_DIPLOME"));
                 a.setIsLastYear(results1.getBoolean("ANNEE.IS_LAST_YEAR"));
-                a.setNomEtablissement(results1.getString("ETABLISSEMENT.NOM"));
-                a.setNomDiplome(results1.getString("DIPLOME.NOM"));
                 a.setDecoupage(results1.getString("ANNEE.DECOUPAGE"));
+                a.setNomDiplome(results1.getString("DIPLOME.NOM"));
+                
+                Etablissement e = new Etablissement();
+                e.setIdEtablissement(results1.getInt("ETABLISSEMENT.ID"));
+                e.setVille(results1.getString("ETABLISSEMENT.VILLE"));
+                e.setNom(results1.getString("ETABLISSEMENT.NOM"));
+                
+                a.setEtablissement(e);
 
                 // Récupération des règles de l'année
                 stmt4 = connexion.createStatement();
@@ -482,6 +492,16 @@ public class AnneeService {
         return annees;
     }
     
+    /**
+     * Méthode permettant de savoir si une année est suivie ou non par l'admin
+     * spécifiée.
+     * 
+     * @param idAnnee L'identifiant de l'année à chercher.
+     * @param idAdmin L'identifiant de l'admin à chercher.
+     * 
+     * @return <b>true</b> si l'année est suivie par l'admin spécifié.
+     * <b>false</b> sinon.
+     */
     private boolean isFollowed (int idAnnee, int idAdmin) {
         boolean isFollowed = false;
         
@@ -535,6 +555,21 @@ public class AnneeService {
         return isFollowed;
     }
 
+    /**
+     * Méthode retournant les années suivies d'un diplôme par un administrateur.
+     * 
+     * @param idDiplome L'identifiant du diplôme.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
+     * requête. Permet d'éviter les rejeux.
+     * 
+     * @return 3 possibilités : 
+     * - La liste des années suivies d'un diplôme par l'admin spécifié si les 
+     * paramètres sont corrects.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     */
     @GET
     @Path("getAnneesFollowedByDiplome")
     @Produces("application/json;charset=utf-8")
