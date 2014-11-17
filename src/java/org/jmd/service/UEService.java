@@ -312,7 +312,6 @@ public class UEService {
                 ue.setIdUE(results.getInt("UE.ID"));
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
-                ue.setIdAnnee(results.getInt("UE.ID_ANNEE"));
                 
                 UEs.add(ue);
             }

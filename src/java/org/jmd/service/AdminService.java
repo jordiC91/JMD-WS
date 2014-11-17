@@ -152,7 +152,7 @@ public class AdminService {
     @GET
     public Response follow(
             @QueryParam("idAnnee")
-                int idAnnee,
+                    int idAnnee,
             @QueryParam("pseudo")
                     String pseudo,
             @QueryParam("token")
@@ -165,17 +165,17 @@ public class AdminService {
         ResultSet results = null;
         
         int idAdmin = 0;
-                
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 
                 results = stmt.executeQuery("SELECT ID " +
-                                                  "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
                 
-                while (results.next()) {    
+                while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
                 
@@ -191,7 +191,7 @@ public class AdminService {
             }
         } catch (SQLException ex) {
             Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -199,7 +199,7 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -207,11 +207,11 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (ex instanceof MySQLIntegrityConstraintViolationException) {
                 return Response.status(403).entity("DUPLICATE_ENTRY").build();
             }
-
+            
             return Response.status(500).build();
         } finally {
             if (stmt != null) {
@@ -221,7 +221,7 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -252,7 +252,7 @@ public class AdminService {
     @GET
     public Response unfollow(
             @QueryParam("idAnnee")
-                int idAnnee,
+                    int idAnnee,
             @QueryParam("pseudo")
                     String pseudo,
             @QueryParam("token")
@@ -265,17 +265,17 @@ public class AdminService {
         ResultSet results = null;
         
         int idAdmin = 0;
-                
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 
                 results = stmt.executeQuery("SELECT ID " +
-                                                  "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
                 
-                while (results.next()) {    
+                while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
                 
@@ -291,7 +291,7 @@ public class AdminService {
             }
         } catch (SQLException ex) {
             Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -299,7 +299,7 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -307,11 +307,11 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (ex instanceof MySQLIntegrityConstraintViolationException) {
                 return Response.status(403).entity("DUPLICATE_ENTRY").build();
             }
-
+            
             return Response.status(500).build();
         } finally {
             if (stmt != null) {
@@ -321,7 +321,7 @@ public class AdminService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();

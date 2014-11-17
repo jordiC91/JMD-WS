@@ -449,7 +449,7 @@ public class AnneeService {
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT ID, NOM, ID_ETABLISSEMENT, ID_DIPLOME, IS_LAST_YEAR FROM ANNEE WHERE ID_DIPLOME=" + idDiplome + " AND ID_ETABLISSEMENT=" + idEtablissement + ";");
+            results = stmt.executeQuery("SELECT ID, NOM, ID_ETABLISSEMENT, ID_DIPLOME, IS_LAST_YEAR, DECOUPAGE FROM ANNEE WHERE ID_DIPLOME=" + idDiplome + " AND ID_ETABLISSEMENT=" + idEtablissement + ";");
             Annee a = null;
 
             while (results.next()) {
@@ -459,6 +459,7 @@ public class AnneeService {
                 a.setIdEtablissement(results.getInt("ID_ETABLISSEMENT"));
                 a.setIdDiplome(results.getInt("ID_DIPLOME"));
                 a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
+                a.setDecoupage(results.getString("DECOUPAGE"));
                 annees.add(a);
             }
         } catch (SQLException ex) {
