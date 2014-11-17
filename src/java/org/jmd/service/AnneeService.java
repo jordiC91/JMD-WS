@@ -555,6 +555,127 @@ public class AnneeService {
         
         return isFollowed;
     }
+    
+    @GET
+    @Path("getFavorites")
+    @Produces("application/json;charset=utf-8")
+    public Response getFavorites(
+            @QueryParam("pseudo") 
+                    String pseudo,
+            @QueryParam("token") 
+                    String token,
+            @QueryParam("timestamp") 
+                    long timestamp) {
+
+        ArrayList<Annee> annees = new ArrayList<>();
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                results = stmt.executeQuery("SELECT ID " +
+                                                "FROM ADMINISTRATEUR " +
+                                                "WHERE (PSEUDO = '" + pseudo + "');");
+                
+                int idAdmin = 0;
+                
+                while (results.next()) {    
+                    idAdmin = results.getInt("ID");
+                }
+                
+                results.close();
+                stmt.close();
+                
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT * " +
+                            "FROM DIPLOME, ANNEE, ADMIN_FOLLOWER, ADMINISTRATEUR, ETABLISSEMENT " +
+                            "WHERE (DIPLOME.ID = ANNEE.ID) " +
+                                "AND (ADMIN_FOLLOWER.ID_ADMIN = ADMINISTRATEUR.ID) " +
+                                "AND (ETABLISSEMENT.ID = ANNEE.ID_ETABLISSEMENT) " +
+                                "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) " +
+                                "AND (ADMINISTRATEUR.ID = " + idAdmin + ");");
+
+                Annee a = null;
+
+                while (results.next()) {
+                    a = new Annee();
+                    a.setIdAnnee(results.getInt("ANNEE.ID"));
+                    a.setNom(results.getString("ANNEE.NOM"));
+                    a.setIdEtablissement(results.getInt("ID_ETABLISSEMENT"));
+                    a.setIdDiplome(results.getInt("ID_DIPLOME"));
+                    a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
+                    a.setDecoupage(results.getString("DECOUPAGE"));
+                    a.setIsFollowed(isFollowed(a.getIdAnnee(), idAdmin));
+                    
+                    Etablissement e = new Etablissement();
+                    e.setIdEtablissement(results.getInt("ETABLISSEMENT.ID"));
+                    e.setNom(results.getString("ETABLISSEMENT.NOM"));
+                    e.setVille(results.getString("VILLE"));
+                    a.setEtablissement(e);
+
+                    annees.add(a);
+                }
+            } else {
+                if (results != null) {
+                    try {
+                        results.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+        } finally {
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return Response.status(200).entity(annees.toArray(new Annee[annees.size()])).build();
+    }
 
     /**
      * Méthode retournant les années suivies d'un diplôme par un administrateur.
