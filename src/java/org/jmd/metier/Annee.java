@@ -55,7 +55,7 @@ public class Annee {
      * La liste des UE de l'année.
      */
     @XmlElement(name="ues")
-    private ArrayList<UE> listeUEs;
+    private ArrayList<UE> ues;
     
     /**
      * La liste des règmes de gestion de l'année.
@@ -91,11 +91,11 @@ public class Annee {
      * <b>false</b> sinon.
      */
     public boolean addUE(UE ue) {
-        if (this.listeUEs == null) {
-            this.listeUEs = new ArrayList<>();
+        if (this.ues == null) {
+            this.ues = new ArrayList<>();
         }
         
-        return this.listeUEs.add(ue);
+        return this.ues.add(ue);
     } 
     
     /* Getters. */
@@ -181,8 +181,9 @@ public class Annee {
      * 
      * @return La liste des UE de l'année.
      */
+    @XmlElement(name="ues")
     public ArrayList<UE> getListeUE() {
-        return this.listeUEs;
+        return this.ues;
     }
     
     // Non en base.
@@ -227,32 +228,73 @@ public class Annee {
         this.nom = nom;
     }    
 
+    /**
+     * Méthode permettant de modifier le découpage de l'année.
+     * 
+     * @param decoupage Le nouveau découpage de l'année.
+     */
     public void setDecoupage(String decoupage) {
         this.decoupage = decoupage;
     }
 
+    /**
+     * Méthode permettant de modifier le booléen permettant de savoir si l'année 
+     * est la dernière du diplôme, ou non.
+     * 
+     * @param isLastYear Le nouveau booléen permettant de savoir si l'année est la
+     * dernière du diplôme.
+     */
     public void setIsLastYear(boolean isLastYear) {
         this.isLastYear = isLastYear;
     }
 
+    /**
+     * Méthode permettant de modifier l'identifiant de l'établissement où est 
+     * rattachée l'année.
+     * 
+     * @param idEtablissement Le nouvel identifiant de l'établissement où est rattachée
+     * l'année.
+     */
     public void setIdEtablissement(int idEtablissement) {
         this.idEtablissement = idEtablissement;
     }
 
+    /**
+     * Méthode permettant de modifier l'identifiant du diplôme où est rattachée l'année.
+     * 
+     * @param idDiplome Le nouvel identifiant du diplôme.
+     */
     public void setIdDiplome(int idDiplome) {
         this.idDiplome = idDiplome;
     }
     
+    /**
+     * Méthode permettant de modifier la liste des règles de gestion de l'année.
+     * 
+     * @param listeRegles La nouvelle liste des règles de l'année.
+     */
     public void setListeRegles(ArrayList<Regle> listeRegles) {
         this.listeRegles = listeRegles;
     }
     
+    /**
+     * Méthode permettant de modifier le booléen permettant de savoir si l'année est
+     * suivie.
+     * 
+     * @param isFollowed Le nouveau booléen permettant de savoir si l'année est 
+     * suivie.
+     */
     public void setIsFollowed(boolean isFollowed) {
         this.isFollowed = isFollowed;
     }
     
+    /**
+     * Méthode permettant de modifier la liste des UE de l'année.
+     * 
+     * @param listeUE La nouvelle liste des UE de l'année.
+     */
     public void setListeUE(ArrayList<UE> listeUE) {
-        this.listeUEs = listeUE;
+        this.ues = listeUE;
     }
 
     // Non en base.

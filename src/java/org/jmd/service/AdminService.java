@@ -58,7 +58,7 @@ public class AdminService {
             
             while (results.next()) {
                 String sel = results.getString("SEL");
-                String passwordSalted = AdminUtils.sha256(password + sel);
+                String passwordSalted = SecurityUtils.sha256(password + sel);
                 
                 if (!passwordSalted.equals(results.getString("PASSWORD"))) {
                     results.close();
@@ -133,6 +133,21 @@ public class AdminService {
         }
     }
     
+    /**
+     * Méthode permettant à un administrateur de suivre les modifications d'une année.
+     * 
+     * @param idAnnee L'identifiant de l'année à suivre.
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
+     * requête. Permet d'éviter les rejeux.
+     * 
+     * @return 3 possibilités : 
+     * - Un code HTTP 200 si la demande de suivi se passe bien. 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     * - Un code HTTP 403 si l'année est déjà suivie pour l'admin spécifié.
+     */
     @Path("follow")
     @GET
     public Response follow(
@@ -217,6 +232,22 @@ public class AdminService {
         }
     }
     
+    /**
+     * Méthode permettant à un administrateur d'arrêter de suivre les 
+     * modifications d'une année.
+     * 
+     * @param idAnnee L'identifiant de l'année à suivre.
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
+     * requête. Permet d'éviter les rejeux.
+     * 
+     * @return 3 possibilités : 
+     * - Un code HTTP 200 si la demande de suivi se passe bien. 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     * - Un code HTTP 403 si l'année est déjà suivie pour l'admin spécifié.
+     */
     @Path("unfollow")
     @GET
     public Response unfollow(
@@ -616,7 +647,7 @@ public class AdminService {
                 
                 AdminUtils.sendMail(subject, text, emailAdmin);
                 
-                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + AdminUtils.sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + SecurityUtils.sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
             }
             results.close();
             stmt.close();
@@ -937,7 +968,7 @@ public class AdminService {
             stmt = connexion.createStatement();
             
             String sel = AdminUtils.generateRandomCode();
-            String passwordSalted = AdminUtils.sha256(password + sel);
+            String passwordSalted = SecurityUtils.sha256(password + sel);
             
             stmt.execute("INSERT INTO ADMINISTRATEUR (PSEUDO, NOM, PRENOM, PASSWORD, EMAIL, EST_ACTIF, SEL, TOKEN, TIMESTAMP_USER) VALUES ('" + pseudo + "', '" + nom + "', '" + prenom + "', '" + passwordSalted + "', '" + email + "', 0, '" + sel + "', '', 0);");
         } catch (SQLException ex) {

@@ -32,9 +32,6 @@ public class Matiere {
      */
     private boolean isOption;
     
-    @XmlElement(name="regles")
-    private ArrayList<Regle> listeRegles = new ArrayList();
-    
     /**
      * Constructeur par défaut de la classe.
      */
@@ -81,10 +78,6 @@ public class Matiere {
         return this.isOption;
     }
     
-    public ArrayList<Regle> getListeRegles() {
-        return this.listeRegles;
-    }
-    
     /* Setters. */
 
     /**
@@ -122,9 +115,5 @@ public class Matiere {
      */
     public void setIsOption(boolean isOption) {
         this.isOption = isOption;
-    }
-    
-    public void setListeRegles(ArrayList<Regle> listeRegles) {
-        this.listeRegles = listeRegles;
     }
 }

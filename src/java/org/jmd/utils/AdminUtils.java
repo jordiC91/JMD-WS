@@ -1,18 +1,12 @@
 package org.jmd.utils;
 
-import java.security.MessageDigest;
-import java.security.NoSuchAlgorithmException;
+import java.security.*;
 import java.sql.*;
-import java.util.Properties;
-import java.util.Random;
+import java.util.*;
 import java.util.logging.*;
-import javax.mail.Message;
-import javax.mail.MessagingException;
-import javax.mail.PasswordAuthentication;
-import javax.mail.Session;
+import javax.mail.*;
 import javax.mail.Transport;
-import javax.mail.internet.InternetAddress;
-import javax.mail.internet.MimeMessage;
+import javax.mail.internet.*;
 import org.jmd.Constantes;
 import org.jmd.service.AdminService;
 import org.jmd.service.DiplomeService;
@@ -100,7 +94,7 @@ public class AdminUtils {
 
             while (results.next()) {
                 if (results.getInt("ANNEE.ID") == idAnnee) {
-                    String sujet = "JMD - Modification d'une année suivi";
+                    String sujet = "JMD - Modification d'une année suivie";
                     
                     String text = "Bonjour<br />"
                             + "Une modification a été effectuée par '" + pseudo + "' sur l'année suivante :<br />"
@@ -310,33 +304,6 @@ public class AdminUtils {
                 }
             }
         }
-    }
-
-    /**
-     * Méthode permettant d'hasher une chaîne de caractères en SHA-256.
-     *
-     * @param passwordToHash La chaîne à hasher.
-     *
-     * @return La chaîne hashée en SHA-256.
-     */
-    public static String sha256(String passwordToHash) {
-        String generatedPassword = null;
-
-        try {
-            MessageDigest md = MessageDigest.getInstance("SHA-256");
-            byte[] bytes = md.digest(passwordToHash.getBytes());
-            StringBuilder sb = new StringBuilder();
-
-            for (int i = 0; i < bytes.length; i++) {
-                sb.append(Integer.toString((bytes[i] & 0xff) + 0x100, 16).substring(1));
-            }
-
-            generatedPassword = sb.toString();
-        } catch (NoSuchAlgorithmException e) {
-            throw new RuntimeException("Le SHA-256 n'est pas supporté.");
-        }
-
-        return generatedPassword;
     }
 
     /**
