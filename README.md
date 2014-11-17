@@ -4,7 +4,7 @@ This Github project is a module containing all the web services of JMD.
 
 JMD is a university project started in "M1 MIAGE" and finished in "M2 MIAGE" by Jordi CARPENTER and Yoann VANHOESERLANDE.
 
-Its purpose is to provide to the students with application to calculate their average and simulate their graduation in real time.
+Its purpose is to provide to the students an application to calculate their average and simulate their graduation in real time.
 
 Several other features are also available.
 Examples:
@@ -23,7 +23,7 @@ Examples:
 List of the services of the module :
 - AdminService 
 
-For each of those services, at least 2 methods are offered ("create" and "delete").
+For each of those services, at least 2 methods are offered ("create" and "delete") :
 - RegleService 
 - DiplomeService
 - AnneeService 
