@@ -15,6 +15,7 @@ import org.jmd.metier.UE;
  */
 @Path("ue")
 public class UEService {
+    
     /**
      * Constructeur par défaut de la classe.
      */
@@ -146,11 +147,23 @@ public class UEService {
         
         Connection connexion = null;
         Statement stmt = null;
+        ResultSet r = null;
+        int idAnnee = 0;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
+                
+                stmt = connexion.createStatement();
+                r = stmt.executeQuery("SELECT UE.ID_ANNEE " +
+                        "FROM ANNEE, UE " +
+                        "WHERE (UE.ID = " + id + ") AND (ANNEE.ID = UE.ID_ANNEE)");
+
+                while (r.next()) {
+                    idAnnee = r.getInt("UE.ID_ANNEE");
+                }
+                
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID_UE = " + id + ")");
                 stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
             } catch (SQLException ex) {
@@ -192,10 +205,12 @@ public class UEService {
                 }
             }
             
+            final int idAnneeT = idAnnee;
+            
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   AdminUtils.notify(pseudo, id);
+                   AdminUtils.notify(pseudo, idAnneeT);
                 }
             }).start();
             
