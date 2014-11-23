@@ -96,7 +96,7 @@ public class AdminUtils {
                 if (results.getInt("ANNEE.ID") == idAnnee) {
                     String sujet = "JMD - Modification d'une année suivie";
                     
-                    String text = "Bonjour<br />"
+                    String text = "Bonjour,<br /><br />"
                             + "Une modification a été effectuée par '" + pseudo + "' sur l'année suivante :<br />"
                             + "- Diplôme : '" + results.getString("DIPLOME.NOM") + "'.<br />"
                             + "- Année : '" + results.getString("ANNEE.NOM") + "'."

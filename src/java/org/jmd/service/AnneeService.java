@@ -556,6 +556,20 @@ public class AnneeService {
         return isFollowed;
     }
     
+    /**
+     * Méthode permettant de récupérer les années suivies par un admin donné.
+     *
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
+     * requête. Permet d'éviter les rejeux.
+     *
+     * @return 3 possibilités : 
+     * - Un code HTTP 200 avec les années suivies, si l'utilisateur ayant fait 
+     * la demande est connecté (donc autorisé). 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
     @GET
     @Path("getFavorites")
     @Produces("application/json;charset=utf-8")
@@ -593,7 +607,7 @@ public class AnneeService {
                 stmt = connexion.createStatement();
                 results = stmt.executeQuery("SELECT * " +
                             "FROM DIPLOME, ANNEE, ADMIN_FOLLOWER, ADMINISTRATEUR, ETABLISSEMENT " +
-                            "WHERE (DIPLOME.ID = ANNEE.ID) " +
+                            "WHERE (DIPLOME.ID = ANNEE.ID_DIPLOME) " +
                                 "AND (ADMIN_FOLLOWER.ID_ADMIN = ADMINISTRATEUR.ID) " +
                                 "AND (ETABLISSEMENT.ID = ANNEE.ID_ETABLISSEMENT) " +
                                 "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) " +
