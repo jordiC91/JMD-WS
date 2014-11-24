@@ -214,6 +214,7 @@ public class AdminUtils {
      */
     public static boolean checkTimestamp(String pseudo, long timestampACheck) {
         boolean isOK = false;
+        
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
@@ -229,7 +230,8 @@ public class AdminUtils {
                 long timestamp = results.getLong("TIMESTAMP_USER");
 
                 if (timestampACheck == timestamp) { // Si 2 timestamp identiques sont envoyés : attaque par rejeu.
-                    logout(pseudo);
+                    isOK = false;
+                    break;
                 } else if ((timestampACheck - timestamp) < Constantes.TIMESTAMP_LIMIT) { // S'il y a eu plus de 15min avec le dernier appel de services pour l'admin.
                     // Mise à jour du timestamp.
                     stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = " + timestampACheck + " WHERE PSEUDO = '" + pseudo + "';");
