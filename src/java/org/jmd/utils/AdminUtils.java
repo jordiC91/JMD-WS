@@ -93,18 +93,16 @@ public class AdminUtils {
                         + "AND (ANNEE.ID = " + idAnnee + ");");
 
             while (results.next()) {
-                if (results.getInt("ANNEE.ID") == idAnnee) {
-                    String sujet = "JMD - Modification d'une année suivie";
-                    
-                    String text = "Bonjour,<br /><br />"
-                            + "Une modification a été effectuée par '" + pseudo + "' sur l'année suivante :<br />"
-                            + "- Diplôme : '" + results.getString("DIPLOME.NOM") + "'.<br />"
-                            + "- Année : '" + results.getString("ANNEE.NOM") + "'."
-                            + "<br /><br />"
-                            + "Cordialement,<br />"
-                            + "L'équipe de JMD,";
-                    
-                    sendMail(sujet, text, results.getString("ADMINISTRATEUR.EMAIL"));
+                if (results.getInt("ANNEE.ID") == idAnnee) {                                        
+                    sendMail("JMD - Modification d'une année suivie", 
+                                "Bonjour,<br /><br />"
+                                + "Une modification a été effectuée par '" + pseudo + "' sur l'année suivante :<br />"
+                                + "- Diplôme : '" + results.getString("DIPLOME.NOM") + "'.<br />"
+                                + "- Année : '" + results.getString("ANNEE.NOM") + "'."
+                                + "<br /><br />"
+                                + "Cordialement,<br />"
+                                + "L'équipe de JMD,", 
+                                    results.getString("ADMINISTRATEUR.EMAIL"));
                     
                     break;
                 }
@@ -151,50 +149,53 @@ public class AdminUtils {
      */
     public static boolean checkToken(String pseudo, String tokenACheck) {
         boolean isOK = false;
-        Connection connexion = null;
-        Statement stmt = null;
-        ResultSet results = null;
+       
+        if (tokenACheck != null) {
+            Connection connexion = null;
+            Statement stmt = null;
+            ResultSet results = null;
 
-        try {
-            connexion = SQLUtils.getConnexion();
-            stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT TOKEN "
-                    + "FROM ADMINISTRATEUR "
-                    + "WHERE (PSEUDO = '" + pseudo + "');");
+            try {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT TOKEN "
+                        + "FROM ADMINISTRATEUR "
+                        + "WHERE (PSEUDO = '" + pseudo + "');");
 
-            while (results.next()) {
-                String token = results.getString("TOKEN");
+                while (results.next()) {
+                    String token = results.getString("TOKEN");
 
-                if (token.equals(tokenACheck)) {
-                    isOK = true;
-                    break;
+                    if (token.equals(tokenACheck)) {
+                        isOK = true;
+                        break;
+                    }
                 }
-            }
 
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            if (results != null) {
-                try {
-                    results.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                results.close();
+                stmt.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (results != null) {
+                    try {
+                        results.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
-            if (connexion != null) {
-                try {
-                    connexion.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
@@ -215,57 +216,59 @@ public class AdminUtils {
     public static boolean checkTimestamp(String pseudo, long timestampACheck) {
         boolean isOK = false;
         
-        Connection connexion = null;
-        Statement stmt = null;
-        ResultSet results = null;
+        if (timestampACheck != 0) {
+            Connection connexion = null;
+            Statement stmt = null;
+            ResultSet results = null;
 
-        try {
-            connexion = SQLUtils.getConnexion();
-            stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT TIMESTAMP_USER "
-                    + "FROM ADMINISTRATEUR "
-                    + "WHERE (PSEUDO = '" + pseudo + "');");
+            try {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT TIMESTAMP_USER "
+                        + "FROM ADMINISTRATEUR "
+                        + "WHERE (PSEUDO = '" + pseudo + "');");
 
-            while (results.next()) {
-                long timestamp = results.getLong("TIMESTAMP_USER");
+                while (results.next()) {
+                    long timestamp = results.getLong("TIMESTAMP_USER");
 
-                if (timestampACheck == timestamp) { // Si 2 timestamp identiques sont envoyés : attaque par rejeu.
-                    isOK = false;
-                    break;
-                } else if ((timestampACheck - timestamp) < Constantes.TIMESTAMP_LIMIT) { // S'il y a eu plus de 15min avec le dernier appel de services pour l'admin.
-                    // Mise à jour du timestamp.
-                    stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = " + timestampACheck + " WHERE PSEUDO = '" + pseudo + "';");
+                    if (timestampACheck == timestamp) { // Si 2 timestamp identiques sont envoyés : attaque par rejeu.
+                        isOK = false;
+                        break;
+                    } else if ((timestampACheck - timestamp) < Constantes.TIMESTAMP_LIMIT) { // S'il y a eu plus de 15min avec le dernier appel de services pour l'admin.
+                        // Mise à jour du timestamp.
+                        stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = " + timestampACheck + " WHERE PSEUDO = '" + pseudo + "';");
 
-                    isOK = true;
-                    break;
-                } else {
-                    logout(pseudo);
+                        isOK = true;
+                        break;
+                    } else {
+                        logout(pseudo);
+                    }
                 }
-            }
-            results.close();
-            stmt.close();
-        } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
-            if (results != null) {
-                try {
-                    results.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                results.close();
+                stmt.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            } finally {
+                if (results != null) {
+                    try {
+                        results.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
-            if (stmt != null) {
-                try {
-                    stmt.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                if (stmt != null) {
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
-            if (connexion != null) {
-                try {
-                    connexion.close();
-                } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
         }
