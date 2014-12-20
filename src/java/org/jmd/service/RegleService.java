@@ -64,6 +64,7 @@ public class RegleService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -73,9 +74,7 @@ public class RegleService {
                 stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO REGLE (REGLE, ID_ANNEE, ID_UE, ID_MATIERE, OPERATEUR, VALEUR) VALUES (" + regle + "," + idAnnee + "," + idUE + "," + idMatiere + ", " + operateur + ", " + valeur + ");");
                 stmt.close();
-            }
-            catch (SQLException ex) {
-                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
+            } catch (SQLException ex) {
                 if(stmt != null){
                     try {
                         stmt.close();
@@ -83,6 +82,7 @@ public class RegleService {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
@@ -90,6 +90,7 @@ public class RegleService {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
             }
             finally {
@@ -110,8 +111,7 @@ public class RegleService {
             }
             
             return Response.status(200).build();
-        }
-        else {
+        } else {
             return Response.status(401).build();
         }
     }
@@ -142,6 +142,7 @@ public class RegleService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = null;
         Statement stmt = null;
         
@@ -152,7 +153,6 @@ public class RegleService {
                 stmt.executeUpdate("DELETE FROM REGLE WHERE (ID = " + id + ")");
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
                 if(stmt != null){
                     try {
                         stmt.close();
@@ -160,6 +160,7 @@ public class RegleService {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
@@ -167,16 +168,18 @@ public class RegleService {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
+                
                 return Response.status(500).build();
             }
             finally {
-                if(stmt != null){
+                if (stmt != null){
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
                         Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (connexion != null){
                     try {
                         connexion.close();
@@ -187,8 +190,7 @@ public class RegleService {
             }
             
             return Response.status(200).build();
-        }
-        else {
+        } else {
             return Response.status(401).build();
         }
     }
@@ -216,8 +218,8 @@ public class RegleService {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
             results = stmt.executeQuery("SELECT * "
-                    + "FROM ANNEE, REGLE "
-                    + "WHERE (ID_ANNEE=" + idAnnee + ") AND (ANNEE.ID = REGLE.ID_ANNEE);");
+                    + "FROM ANNEE, REGLE, UE "
+                    + "WHERE (REGLE.ID_ANNEE=" + idAnnee + ") AND (UE.ID = REGLE.ID_UE) AND (ANNEE.ID = REGLE.ID_ANNEE);");
             
             Regle r = null;
             
@@ -230,6 +232,7 @@ public class RegleService {
                 r.setOperateur(results.getInt("REGLE.OPERATEUR"));
                 r.setRegle(results.getInt("REGLE.REGLE"));
                 r.setValeur(results.getInt("REGLE.VALEUR"));
+                r.setNomUE(results.getString("UE.NOM"));
                 
                 regles.add(r);
             }
@@ -263,20 +266,4 @@ public class RegleService {
         
         return regles;
     }
-    
-    /**
-     * Méthode exécutée avant la fin de vie du service.
-     * La connexion à la base est fermée.
-     */
-    /*
-    @PreDestroy
-    public void onDestroy() {
-    if (connexion != null) {
-    try {
-    connexion.close();
-    } catch (SQLException ex) {
-    Logger.getLogger(RegleService.class.getName()).log(Level.SEVERE, null, ex);
-    }
-    }
-    }*/
 }

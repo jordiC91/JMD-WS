@@ -34,6 +34,11 @@ public class Regle {
      * L'identifiant de l'UE rattachée à la règle.
      */
     private int idUE;
+    
+    /**
+     * Le nom de l'UE associée.
+     */
+    private String nomUE;
 
     /**
      * L'identifiant de l'année rattachée à la règle.
@@ -73,6 +78,10 @@ public class Regle {
     public int getIdUE() {
         return this.idUE;
     }
+    
+    public String getNomUE() {
+        return this.nomUE;
+    }
 
     public int getIdAnnee() {
         return this.idAnnee;
@@ -102,6 +111,10 @@ public class Regle {
 
     public void setIdUE(int idUE) {
         this.idUE = idUE;
+    }
+    
+    public void setNomUE(String nomUE) {
+        this.nomUE = nomUE;
     }
 
     public void setIdAnnee(int idAnnee) {
