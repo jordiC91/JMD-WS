@@ -1,7 +1,5 @@
 package org.jmd.metier;
 
-import java.util.ArrayList;
-import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -31,6 +29,10 @@ public class Matiere {
      * Booléen permettant de savoir si la matière est une option ou non.
      */
     private boolean isOption;
+    
+    private boolean isRattrapable;
+    
+    private float noteMini;
     
     /**
      * Constructeur par défaut de la classe.
@@ -74,8 +76,16 @@ public class Matiere {
      * @return <b>true</b> si la matière est une option.
      * <b>false</b> sinon.
      */
-    public boolean isIsOption() {
+    public boolean isOption() {
         return this.isOption;
+    }
+    
+    public boolean isRattrapable() {
+        return this.isRattrapable;
+    }
+    
+    public float getNoteMini() {
+        return this.noteMini;
     }
     
     /* Setters. */
@@ -115,5 +125,13 @@ public class Matiere {
      */
     public void setIsOption(boolean isOption) {
         this.isOption = isOption;
+    }
+    
+    public void setIsRattrapable(boolean isRattrapable) {
+        this.isRattrapable = isRattrapable;
+    }
+    
+    public void setNoteMini(float noteMini) {
+        this.noteMini = noteMini;
     }
 }
