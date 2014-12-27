@@ -30,6 +30,8 @@ public class MatiereService {
      * @param coefficient Le coefficient de la matière à créer.
      * @param isOption Si la matière à créer est une option ou non.
      * @param idUE ID de l'UE auquel appartient la matière
+     * @param isRattrapable Si la matière est rattrapable ou non.
+     * @param noteMini La note minimale de la matière.
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
@@ -53,6 +55,11 @@ public class MatiereService {
                     boolean isOption,
             @QueryParam("idUE")
                     final int idUE,
+            @QueryParam("isRattrapable")
+                    boolean isRattrapable,
+            @DefaultValue("-1.0")
+            @QueryParam("noteMini")
+                    float noteMini,
             @QueryParam("pseudo")
                     final String pseudo,
             @QueryParam("token")
@@ -70,7 +77,7 @@ public class MatiereService {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+");");
+                stmt.execute("INSERT INTO MATIERE (NOM, COEFFICIENT, IS_OPTION, ID_UE, IS_RATTRAPABLE, NOTE_MINI) VALUES ('" + nom + "', " + coefficient + ", " + isOption + ","+idUE+ ", " + isRattrapable + ", " + noteMini + ");");
                 stmt.close();
                 
                 stmt = connexion.createStatement();
@@ -301,7 +308,7 @@ public class MatiereService {
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION, MATIERE.IS_RATTRAPABLE, MATIERE.NOTE_MINI " +
                     "FROM MATIERE, UE " +
                     "WHERE (UE.ID = " + idUE + ") AND (MATIERE.ID_UE = UE.ID);");
             
@@ -313,6 +320,9 @@ public class MatiereService {
                 m.setNom(results.getString("MATIERE.NOM"));
                 m.setCoefficient(results.getFloat("MATIERE.COEFFICIENT"));
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
+                m.setIsRattrapable(results.getBoolean("MATIERE.IS_RATTRAPABLE"));
+                m.setNoteMini(results.getFloat("MATIERE.NOTE_MINI"));
+                
                 matieres.add(m);
             }
         } catch (SQLException ex) {
@@ -368,7 +378,7 @@ public class MatiereService {
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION " +
+            results = stmt.executeQuery("SELECT MATIERE.ID, MATIERE.NOM, MATIERE.COEFFICIENT, MATIERE.IS_OPTION, MATIERE.IS_RATTRAPABLE, MATIERE.NOTE_MINI " +
                     "FROM MATIERE, UE, ANNEE " +
                     "WHERE (UE.ID = MATIERE.ID_UE) AND (UE.ID_ANNEE = ANNEE.ID)  AND (ANNEE.ID = " + idAnnee + ");");
             
@@ -380,6 +390,8 @@ public class MatiereService {
                 m.setNom(results.getString("MATIERE.NOM"));
                 m.setCoefficient(results.getFloat("MATIERE.COEFFICIENT"));
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
+                m.setIsRattrapable(results.getBoolean("MATIERE.IS_RATTRAPABLE"));
+                m.setNoteMini(results.getFloat("MATIERE.NOTE_MINI"));
                 
                 matieres.add(m);
             }

@@ -305,7 +305,7 @@ public class AnneeService {
 
                     // Récupération des matières pour une UE
                     stmt3 = connexion.createStatement();
-                    results3 = stmt3.executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, NOM FROM MATIERE WHERE ID_UE=" + ue.getIdUE() + ";");
+                    results3 = stmt3.executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, IS_RATTRAPABLE, NOTE_MINI, NOM FROM MATIERE WHERE ID_UE=" + ue.getIdUE() + ";");
 
                     while (results3.next()) {
                         Matiere matiere = new Matiere();
@@ -313,6 +313,8 @@ public class AnneeService {
                         matiere.setIdMatiere(results3.getInt("ID"));
                         matiere.setIsOption(results3.getBoolean("IS_OPTION"));
                         matiere.setNom(results3.getString("NOM"));
+                        matiere.setIsRattrapable(results3.getBoolean("MATIERE.IS_RATTRAPABLE"));
+                        matiere.setNoteMini(results3.getFloat("MATIERE.NOTE_MINI"));
                         
                         ue.addMatiere(matiere);
                     }
@@ -431,6 +433,7 @@ public class AnneeService {
                 a.setIdDiplome(results.getInt("ID_DIPLOME"));
                 a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
                 a.setDecoupage(results.getString("DECOUPAGE"));
+                
                 annees.add(a);
             }
         } catch (SQLException ex) {
@@ -464,7 +467,7 @@ public class AnneeService {
         return annees;
     }
     
-        /**
+    /**
      * Méthode permettant de savoir si une année est suivie ou non par l'admin
      * spécifiée.
      * 
