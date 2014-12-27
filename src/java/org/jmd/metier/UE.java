@@ -44,7 +44,7 @@ public class UE {
     /**
      * Le nombre d'options minimum de l'UE.
      */
-    @XmlElement(name="nbOptionMini")
+    @XmlElement(name="nbOptMini")
     private Float nbOptionMini;
     
     /**
