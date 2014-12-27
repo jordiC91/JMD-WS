@@ -29,6 +29,7 @@ public class UEService {
      * @param nom Le nom de l'UE à créer.
      * @param yearType Type de l'année (NULL/SEMESTRE/TRIMESTRE)
      * @param noteMinimale La note minimale de l'UE
+     * @param nbOptMini
      * @param idAnnee ID de l'année à laquelle l'UE appartient.
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
@@ -51,6 +52,8 @@ public class UEService {
                     String yearType,
             @DefaultValue("-1") @QueryParam("noteMinimale")
                     final int noteMinimale,
+            @DefaultValue("0") @QueryParam("nbOptMini")
+                    final int nbOptMini,
             @QueryParam("idAnnee")
                     final int idAnnee,
             @QueryParam("pseudo")
@@ -67,7 +70,7 @@ public class UEService {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE, NOTE_MINI) VALUES ('" + nom + "','"+ yearType +"',"+idAnnee+","+noteMinimale+");");
+                stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE, NOTE_MINI, NB_OPT_MINI) VALUES ('" + nom + "','"+ yearType +"',"+idAnnee+","+noteMinimale+","+nbOptMini+");");
                 stmt.close(); 
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
@@ -245,7 +248,7 @@ public class UEService {
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
-            results = stmt.executeQuery("SELECT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.NOTE_MINI " +
+            results = stmt.executeQuery("SELECT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.NOTE_MINI, UE.NB_OPT_MINI " +
                     "FROM ANNEE, UE " +
                     "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE)");
             
@@ -257,7 +260,8 @@ public class UEService {
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
                 ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
-                
+                ue.setNbOptionMini(results.getFloat("UE.NB_OPT_MINI"));
+
                 UEs.add(ue);
             }
         } catch (SQLException ex) {
@@ -319,7 +323,7 @@ public class UEService {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
 
-            results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.ID_ANNEE, UE.NOTE_MINI " +
+            results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.ID_ANNEE, UE.NOTE_MINI, UE.NB_OPT_MINI " +
                     "FROM ANNEE, UE " +
                     "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE) AND (YEAR_TYPE ='" + yearType + "');");
             
@@ -331,7 +335,8 @@ public class UEService {
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
                 ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
-                
+                ue.setNbOptionMini(results.getFloat("UE.NB_OPT_MINI"));
+
                 UEs.add(ue);
             }
         } catch (SQLException ex) {

@@ -16,14 +16,14 @@ import org.jmd.metier.*;
  */
 @Path("annee")
 public class AnneeService {
-
+    
     /**
      * Constructeur par défaut de la classe.
      */
     public AnneeService() {
-
+        
     }
-
+    
     /**
      * Méthode permettant de créer une année.
      *
@@ -39,10 +39,10 @@ public class AnneeService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
      *
-     * @return 4 possibilités : 
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est connecté (donc autorisé). 
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) 
-     * qui a fait la demande. - Un code HTTP 403 si l'année à créer existe déjà en base. 
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande. - Un code HTTP 403 si l'année à créer existe déjà en base.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
@@ -55,10 +55,10 @@ public class AnneeService {
             @QueryParam("pseudo") String pseudo,
             @QueryParam("token") String token,
             @QueryParam("timestamp") long timestamp) {
-
+        
         Connection connexion = null;
         Statement stmt = null;
-
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
@@ -72,7 +72,7 @@ public class AnneeService {
             }
         } catch (SQLException ex) {
             Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -80,7 +80,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -88,11 +88,11 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
-
+            
             if (ex instanceof MySQLIntegrityConstraintViolationException) {
                 return Response.status(403).entity("DUPLICATE_ENTRY").build();
             }
-
+            
             return Response.status(500).build();
         } finally {
             if (stmt != null) {
@@ -102,7 +102,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -112,7 +112,7 @@ public class AnneeService {
             }
         }
     }
-
+    
     /**
      * Méthode permettant de supprimer une année.
      *
@@ -123,10 +123,10 @@ public class AnneeService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
      *
-     * @return 3 possibilités : 
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression 
-     * est connecté (donc autorisé) et si la suppression s'est bien faite. 
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression
+     * est connecté (donc autorisé) et si la suppression s'est bien faite.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @DELETE
@@ -135,60 +135,60 @@ public class AnneeService {
             @QueryParam("pseudo") String pseudo,
             @QueryParam("token") String token,
             @QueryParam("timestamp") long timestamp) {
-
+        
         Connection connexion = null;
         Statement stmt1 = null;
         Statement stmt2 = null;
         ResultSet results1 = null;
         ResultSet results2 = null;
-
+        
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 stmt1 = connexion.createStatement();
                 stmt2 = connexion.createStatement();
-
+                
                 results1 = stmt1.executeQuery("SELECT * FROM UE WHERE (ID_ANNEE = " + id + ")");
-
+                
                 ArrayList<Integer> idUEList = new ArrayList<>();
                 ArrayList<Integer> idMatiereList = new ArrayList<>();
-
+                
                 while (results1.next()) {
                     idUEList.add(results1.getInt("ID"));
-
+                    
                     stmt2 = connexion.createStatement();
                     results2 = stmt2.executeQuery("SELECT * FROM MATIERE WHERE (ID_UE = " + results1.getInt("ID") + ")");
-
+                    
                     while (results2.next()) {
                         idMatiereList.add(results2.getInt("ID"));
                     }
-
+                    
                     results2.close();
                     stmt2.close();
                 }
-
+                
                 results1.close();
                 stmt1.close();
-
+                
                 stmt2 = connexion.createStatement();
-
+                
                 // Suppression des matières de l'année.
                 for (Integer idMatiereListe : idMatiereList) {
                     stmt2.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereListe + ")");
                 }
-
+                
                 // Suppression des UE de l'année.
                 for (Integer idUEListe : idUEList) {
                     stmt2.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEListe + ")");
                 }
-
+                
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
                 stmt2.close();
-
+                
                 connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
-
+                
                 if (results1 != null) {
                     try {
                         results1.close();
@@ -196,7 +196,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-
+                
                 if (results2 != null) {
                     try {
                         results2.close();
@@ -204,7 +204,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-
+                
                 if (stmt1 != null) {
                     try {
                         stmt1.close();
@@ -212,7 +212,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-
+                
                 if (stmt2 != null) {
                     try {
                         stmt2.close();
@@ -220,7 +220,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-
+                
                 if (connexion != null) {
                     try {
                         connexion.close();
@@ -228,16 +228,16 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, exc);
                     }
                 }
-
+                
                 return Response.status(500).build();
             }
         } else {
             return Response.status(401).build();
         }
-
+        
         return Response.status(200).build();
     }
-
+    
     /**
      * Méthode permettant de récupérer une année complète (UE / MATIERE).
      *
@@ -250,9 +250,9 @@ public class AnneeService {
     @Path("getCompleteYear")
     @Produces("application/json;charset=utf-8")
     public Annee getCompleteYear(
-            @QueryParam("idAnnee") 
+            @QueryParam("idAnnee")
                     String idAnnee) {
-
+        
         Annee a = null;
         Connection connexion = null;
         
@@ -263,7 +263,7 @@ public class AnneeService {
         ResultSet results1 = null;
         ResultSet results2 = null;
         ResultSet results3 = null;
-
+        
         try {
             connexion = SQLUtils.getConnexion();
             
@@ -275,7 +275,7 @@ public class AnneeService {
                     + "ETABLISSEMENT.NOM, ETABLISSEMENT.VILLE, ETABLISSEMENT.ID, "
                     + "DIPLOME.NOM "
                     + "FROM ANNEE, DIPLOME, ETABLISSEMENT WHERE ANNEE.ID=" + idAnnee + " AND ANNEE.ID_DIPLOME=DIPLOME.ID AND ANNEE.ID_ETABLISSEMENT=ETABLISSEMENT.ID;");
-
+            
             while (results1.next()) {
                 a = new Annee();
                 a.setIdAnnee(results1.getInt("ANNEE.ID"));
@@ -295,18 +295,20 @@ public class AnneeService {
                 
                 // Récupération des UEs pour une année
                 stmt2 = connexion.createStatement();
-                results2 = stmt2.executeQuery("SELECT ID, YEAR_TYPE, NOM FROM UE WHERE ID_ANNEE=" + a.getIdAnnee() + ";");
-
+                results2 = stmt2.executeQuery("SELECT ID, YEAR_TYPE, NOM, NOTE_MINI, NB_OPT_MINI FROM UE WHERE ID_ANNEE=" + a.getIdAnnee() + ";");
+                
                 while (results2.next()) {
                     UE ue = new UE();
                     ue.setIdUE(results2.getInt("ID"));
                     ue.setYearType(results2.getString("YEAR_TYPE"));
                     ue.setNom(results2.getString("NOM"));
-
+                    ue.setNoteMini(results2.getFloat("UE.NOTE_MINI"));
+                    ue.setNbOptionMini(results2.getFloat("UE.NB_OPT_MINI"));
+                    
                     // Récupération des matières pour une UE
                     stmt3 = connexion.createStatement();
                     results3 = stmt3.executeQuery("SELECT COEFFICIENT, ID, IS_OPTION, IS_RATTRAPABLE, NOTE_MINI, NOM FROM MATIERE WHERE ID_UE=" + ue.getIdUE() + ";");
-
+                    
                     while (results3.next()) {
                         Matiere matiere = new Matiere();
                         matiere.setCoefficient(results3.getFloat("COEFFICIENT"));
@@ -318,17 +320,17 @@ public class AnneeService {
                         
                         ue.addMatiere(matiere);
                     }
-
+                    
                     results3.close();
                     stmt3.close();
                     
                     a.addUE(ue);
                 }
-
+                
                 results2.close();
                 stmt2.close();
             }
-
+            
             results1.close();
             stmt1.close();
             connexion.close();
@@ -342,7 +344,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (results2 != null) {
                 try {
                     results2.close();
@@ -350,7 +352,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (results3 != null) {
                 try {
                     results3.close();
@@ -358,7 +360,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt1 != null) {
                 try {
                     stmt1.close();
@@ -366,7 +368,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt2 != null) {
                 try {
                     stmt2.close();
@@ -374,7 +376,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt3 != null) {
                 try {
                     stmt3.close();
@@ -382,7 +384,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -391,10 +393,10 @@ public class AnneeService {
                 }
             }
         }
-
+        
         return a;
     }
-
+    
     /**
      * Méthode permettant de récupérer la liste des années en fonction d'un
      * diplôme et d'un établissement.
@@ -409,22 +411,22 @@ public class AnneeService {
     @Path("getAnnees")
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnnees(
-            @QueryParam("idDiplome") 
+            @QueryParam("idDiplome")
                     String idDiplome,
-            @QueryParam("idEtablissement") 
+            @QueryParam("idEtablissement")
                     String idEtablissement) {
-
+        
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
-
+        
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
             results = stmt.executeQuery("SELECT ID, NOM, ID_ETABLISSEMENT, ID_DIPLOME, IS_LAST_YEAR, DECOUPAGE FROM ANNEE WHERE ID_DIPLOME=" + idDiplome + " AND ID_ETABLISSEMENT=" + idEtablissement + ";");
             Annee a = null;
-
+            
             while (results.next()) {
                 a = new Annee();
                 a.setIdAnnee(results.getInt("ID"));
@@ -446,7 +448,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -454,7 +456,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -463,17 +465,17 @@ public class AnneeService {
                 }
             }
         }
-
+        
         return annees;
     }
     
     /**
      * Méthode permettant de savoir si une année est suivie ou non par l'admin
      * spécifiée.
-     * 
+     *
      * @param idAnnee L'identifiant de l'année à chercher.
      * @param idAdmin L'identifiant de l'admin à chercher.
-     * 
+     *
      * @return <b>true</b> si l'année est suivie par l'admin spécifié.
      * <b>false</b> sinon.
      */
@@ -490,10 +492,10 @@ public class AnneeService {
             results = stmt.executeQuery("SELECT * "
                     + "FROM ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
                     + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
-                        + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
-                        + "AND (ADMINISTRATEUR.ID = " + idAdmin +") "
-                        + "AND (ANNEE.ID = " + idAnnee + ");");
-
+                    + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
+                    + "AND (ADMINISTRATEUR.ID = " + idAdmin +") "
+                    + "AND (ANNEE.ID = " + idAnnee + ");");
+            
             while (results.next()) {
                 if (results.getInt("ANNEE.ID") == idAnnee) {
                     isFollowed = true;
@@ -509,7 +511,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -517,7 +519,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -538,40 +540,40 @@ public class AnneeService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
      *
-     * @return 3 possibilités : 
-     * - Un code HTTP 200 avec les années suivies, si l'utilisateur ayant fait 
-     * la demande est connecté (donc autorisé). 
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * @return 3 possibilités :
+     * - Un code HTTP 200 avec les années suivies, si l'utilisateur ayant fait
+     * la demande est connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @GET
     @Path("getFavorites")
     @Produces("application/json;charset=utf-8")
     public Response getFavorites(
-            @QueryParam("pseudo") 
+            @QueryParam("pseudo")
                     String pseudo,
-            @QueryParam("token") 
+            @QueryParam("token")
                     String token,
-            @QueryParam("timestamp") 
+            @QueryParam("timestamp")
                     long timestamp) {
-
+        
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
-
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 
                 results = stmt.executeQuery("SELECT ID " +
-                                                "FROM ADMINISTRATEUR " +
-                                                "WHERE (PSEUDO = '" + pseudo + "');");
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
                 
                 int idAdmin = 0;
                 
-                while (results.next()) {    
+                while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
                 
@@ -580,15 +582,15 @@ public class AnneeService {
                 
                 stmt = connexion.createStatement();
                 results = stmt.executeQuery("SELECT * " +
-                            "FROM DIPLOME, ANNEE, ADMIN_FOLLOWER, ADMINISTRATEUR, ETABLISSEMENT " +
-                            "WHERE (DIPLOME.ID = ANNEE.ID_DIPLOME) " +
-                                "AND (ADMIN_FOLLOWER.ID_ADMIN = ADMINISTRATEUR.ID) " +
-                                "AND (ETABLISSEMENT.ID = ANNEE.ID_ETABLISSEMENT) " +
-                                "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) " +
-                                "AND (ADMINISTRATEUR.ID = " + idAdmin + ");");
-
+                        "FROM DIPLOME, ANNEE, ADMIN_FOLLOWER, ADMINISTRATEUR, ETABLISSEMENT " +
+                        "WHERE (DIPLOME.ID = ANNEE.ID_DIPLOME) " +
+                        "AND (ADMIN_FOLLOWER.ID_ADMIN = ADMINISTRATEUR.ID) " +
+                        "AND (ETABLISSEMENT.ID = ANNEE.ID_ETABLISSEMENT) " +
+                        "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) " +
+                        "AND (ADMINISTRATEUR.ID = " + idAdmin + ");");
+                
                 Annee a = null;
-
+                
                 while (results.next()) {
                     a = new Annee();
                     a.setIdAnnee(results.getInt("ANNEE.ID"));
@@ -604,7 +606,7 @@ public class AnneeService {
                     e.setNom(results.getString("ETABLISSEMENT.NOM"));
                     e.setVille(results.getString("VILLE"));
                     a.setEtablissement(e);
-
+                    
                     annees.add(a);
                 }
             } else {
@@ -615,7 +617,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (stmt != null) {
                     try {
                         stmt.close();
@@ -623,7 +625,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (connexion != null) {
                     try {
                         connexion.close();
@@ -631,7 +633,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
@@ -644,7 +646,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -652,7 +654,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -664,52 +666,52 @@ public class AnneeService {
         
         return Response.status(200).entity(annees.toArray(new Annee[annees.size()])).build();
     }
-
+    
     /**
      * Méthode retournant les années suivies d'un diplôme par un administrateur.
-     * 
+     *
      * @param idDiplome L'identifiant du diplôme.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
-     * 
-     * @return 3 possibilités : 
-     * - La liste des années suivies d'un diplôme par l'admin spécifié si les 
+     *
+     * @return 3 possibilités :
+     * - La liste des années suivies d'un diplôme par l'admin spécifié si les
      * paramètres sont corrects.
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      */
     @GET
     @Path("getAnneesFollowedByDiplome")
     @Produces("application/json;charset=utf-8")
     public Response getAnneesFollowedByDiplome(
-            @QueryParam("idDiplome") 
+            @QueryParam("idDiplome")
                     String idDiplome,
-            @QueryParam("pseudo") 
+            @QueryParam("pseudo")
                     String pseudo,
-            @QueryParam("token") 
+            @QueryParam("token")
                     String token,
-            @QueryParam("timestamp") 
+            @QueryParam("timestamp")
                     long timestamp) {
-
+        
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
-
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 
                 results = stmt.executeQuery("SELECT ID " +
-                                                  "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
                 
                 int idAdmin = 0;
                 
-                while (results.next()) {    
+                while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
                 
@@ -720,10 +722,10 @@ public class AnneeService {
                 results = stmt.executeQuery("SELECT * "
                         + "FROM ANNEE, ETABLISSEMENT "
                         + "WHERE (ID_DIPLOME=" + idDiplome + ") "
-                            + "AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
-
+                        + "AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
+                
                 Annee a = null;
-
+                
                 while (results.next()) {
                     a = new Annee();
                     a.setIdAnnee(results.getInt("ANNEE.ID"));
@@ -739,7 +741,7 @@ public class AnneeService {
                     e.setNom(results.getString("ETABLISSEMENT.NOM"));
                     e.setVille(results.getString("VILLE"));
                     a.setEtablissement(e);
-
+                    
                     annees.add(a);
                 }
             } else {
@@ -750,7 +752,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (stmt != null) {
                     try {
                         stmt.close();
@@ -758,7 +760,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (connexion != null) {
                     try {
                         connexion.close();
@@ -766,7 +768,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
@@ -779,7 +781,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -787,7 +789,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -799,54 +801,54 @@ public class AnneeService {
         
         return Response.status(200).entity(annees.toArray(new Annee[annees.size()])).build();
     }
-
+    
     /**
      * Méthode retournant les années suivies d'un diplôme par un administrateur.
-     * 
+     *
      * @param idDiplome L'identifiant du diplôme.
      * @param idEtablissement L'identifiant de l'établissement
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
-     * 
-     * @return 3 possibilités : 
-     * - La liste des années suivies d'un diplôme par l'admin spécifié si les 
+     *
+     * @return 3 possibilités :
+     * - La liste des années suivies d'un diplôme par l'admin spécifié si les
      * paramètres sont corrects.
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      */
     @GET
     @Path("getAnneesFollowedByDE")
     @Produces("application/json;charset=utf-8")
     public Response getAnneesFollowedByDiplomeAndEtablissement(
-            @QueryParam("idDiplome") 
+            @QueryParam("idDiplome")
                     String idDiplome,
-            @QueryParam("idEtablissement") 
+            @QueryParam("idEtablissement")
                     String idEtablissement,
-            @QueryParam("pseudo") 
+            @QueryParam("pseudo")
                     String pseudo,
-            @QueryParam("token") 
+            @QueryParam("token")
                     String token,
-            @QueryParam("timestamp") 
+            @QueryParam("timestamp")
                     long timestamp) {
-
+        
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
-
+        
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 
                 results = stmt.executeQuery("SELECT ID " +
-                                                  "FROM ADMINISTRATEUR " +
-                                                  "WHERE (PSEUDO = '" + pseudo + "');");
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
                 
                 int idAdmin = 0;
                 
-                while (results.next()) {    
+                while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
                 
@@ -857,10 +859,10 @@ public class AnneeService {
                 results = stmt.executeQuery("SELECT * "
                         + "FROM ANNEE "
                         + "WHERE (ANNEE.ID_DIPLOME=" + idDiplome + ") "
-                            + "AND (ANNEE.ID_ETABLISSEMENT = " + idEtablissement + ");");
-
+                        + "AND (ANNEE.ID_ETABLISSEMENT = " + idEtablissement + ");");
+                
                 Annee a = null;
-
+                
                 while (results.next()) {
                     a = new Annee();
                     a.setIdAnnee(results.getInt("ANNEE.ID"));
@@ -870,7 +872,7 @@ public class AnneeService {
                     a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
                     a.setDecoupage(results.getString("DECOUPAGE"));
                     a.setIsFollowed(isFollowed(a.getIdAnnee(), idAdmin));
-
+                    
                     annees.add(a);
                 }
             } else {
@@ -881,7 +883,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (stmt != null) {
                     try {
                         stmt.close();
@@ -889,7 +891,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 if (connexion != null) {
                     try {
                         connexion.close();
@@ -897,7 +899,7 @@ public class AnneeService {
                         Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
-
+                
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
@@ -910,7 +912,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -918,7 +920,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -930,7 +932,7 @@ public class AnneeService {
         
         return Response.status(200).entity(annees.toArray(new Annee[annees.size()])).build();
     }
-
+    
     
     /**
      * Méthode permettant de récupérer la liste des années en fonction d'un
@@ -946,21 +948,21 @@ public class AnneeService {
     @Produces("application/json;charset=utf-8")
     public ArrayList<Annee> getAnneesByDiplome(
             @QueryParam("idDiplome") String idDiplome) {
-
+        
         ArrayList<Annee> annees = new ArrayList<>();
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
-
+        
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
             results = stmt.executeQuery("SELECT * "
                     + "FROM ANNEE, ETABLISSEMENT "
                     + "WHERE (ID_DIPLOME=" + idDiplome + ") AND (ANNEE.ID_ETABLISSEMENT = ETABLISSEMENT.ID);");
-
+            
             Annee a = null;
-
+            
             while (results.next()) {
                 a = new Annee();
                 a.setIdAnnee(results.getInt("ANNEE.ID"));
@@ -969,13 +971,13 @@ public class AnneeService {
                 a.setIdDiplome(results.getInt("ID_DIPLOME"));
                 a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
                 a.setDecoupage(results.getString("DECOUPAGE"));
-
+                
                 Etablissement e = new Etablissement();
                 e.setIdEtablissement(results.getInt("ETABLISSEMENT.ID"));
                 e.setNom(results.getString("ETABLISSEMENT.NOM"));
                 e.setVille(results.getString("VILLE"));
                 a.setEtablissement(e);
-
+                
                 annees.add(a);
             }
         } catch (SQLException ex) {
@@ -988,7 +990,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -996,7 +998,7 @@ public class AnneeService {
                     Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -1005,7 +1007,7 @@ public class AnneeService {
                 }
             }
         }
-
+        
         return annees;
     }
 }
