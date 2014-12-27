@@ -35,7 +35,7 @@ public class UE {
      * La note minimale de l'UE.
      */
     @XmlElement
-    private Float noteMinimale;
+    private Float noteMini;
     
     /**
      * La liste des matières de l'UE.
@@ -104,6 +104,14 @@ public class UE {
         return this.idAnnee;
     }
     
+    /**
+     * Méthode permettant de récupérer la note minimale de l'UE
+     * @return La note minimale de l'UE
+     */
+    public Float getNoteMini() {
+        return noteMini;
+    }
+    
     /* Setters. */
     
     /**
@@ -143,18 +151,10 @@ public class UE {
     }
 
     /**
-     * Méthode permettant de récupérer la note minimale de l'UE
-     * @return La note minimale de l'UE
-     */
-    public Float getNoteMinimale() {
-        return noteMinimale;
-    }
-
-    /**
      * Méthode permettant de modifier la note minimale de l'UE
-     * @param noteMinimale La nouvelle note minimale de l'UE
+     * @param noteMini La nouvelle note minimale de l'UE
      */
-    public void setNoteMinimale(Float noteMinimale) {
-        this.noteMinimale = noteMinimale;
+    public void setNoteMini(Float noteMini) {
+        this.noteMini = noteMini;
     }
 }

@@ -256,7 +256,7 @@ public class UEService {
                 ue.setIdUE(results.getInt("UE.ID"));
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
-                ue.setNoteMinimale(results.getFloat("UE.NOTE_MINI"));
+                ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
                 
                 UEs.add(ue);
             }
@@ -330,7 +330,7 @@ public class UEService {
                 ue.setIdUE(results.getInt("UE.ID"));
                 ue.setNom(results.getString("UE.NOM"));
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
-                ue.setNoteMinimale(results.getFloat("UE.NOTE_MINI"));
+                ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
                 
                 UEs.add(ue);
             }
