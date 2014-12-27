@@ -45,7 +45,7 @@ public class UE {
      * Le nombre d'options minimum de l'UE.
      */
     @XmlElement(name="nbOptMini")
-    private Float nbOptionMini;
+    private int nbOptionMini;
     
     /**
      * La liste des matières de l'UE.
@@ -126,7 +126,7 @@ public class UE {
      *
      * @return
      */
-    public Float getNbOptionMini() {
+    public int getNbOptionMini() {
         return nbOptionMini;
     }
     
@@ -180,7 +180,7 @@ public class UE {
      *
      * @param nbOptionMini
      */
-    public void setNbOptionMini(Float nbOptionMini) {
+    public void setNbOptionMini(int nbOptionMini) {
         this.nbOptionMini = nbOptionMini;
     }
 }

@@ -303,7 +303,7 @@ public class AnneeService {
                     ue.setYearType(results2.getString("YEAR_TYPE"));
                     ue.setNom(results2.getString("NOM"));
                     ue.setNoteMini(results2.getFloat("UE.NOTE_MINI"));
-                    ue.setNbOptionMini(results2.getFloat("UE.NB_OPT_MINI"));
+                    ue.setNbOptionMini(results2.getInt("UE.NB_OPT_MINI"));
                     
                     // Récupération des matières pour une UE
                     stmt3 = connexion.createStatement();
