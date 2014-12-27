@@ -57,12 +57,6 @@ public class Annee {
     @XmlElement(name="ues")
     private ArrayList<UE> ues;
     
-    /**
-     * La liste des règmes de gestion de l'année.
-     */
-    @XmlElement(name="regles")
-    private ArrayList<Regle> listeRegles = new ArrayList();
-    
     // Non en base.
     
     /**
@@ -169,15 +163,6 @@ public class Annee {
     }
     
     /**
-     * Méthode retournant la liste des règles de gestion de l'année.
-     *
-     * @return La liste des règles de gestion de l'année.
-     */
-    public ArrayList<Regle> getListeRegles() {
-        return this.listeRegles;
-    }
-    
-    /**
      * Méthode retournant la liste des UE de l'année.
      *
      * @return La liste des UE de l'année.
@@ -267,15 +252,6 @@ public class Annee {
      */
     public void setIdDiplome(int idDiplome) {
         this.idDiplome = idDiplome;
-    }
-    
-    /**
-     * Méthode permettant de modifier la liste des règles de gestion de l'année.
-     *
-     * @param listeRegles La nouvelle liste des règles de l'année.
-     */
-    public void setListeRegles(ArrayList<Regle> listeRegles) {
-        this.listeRegles = listeRegles;
     }
     
     /**
