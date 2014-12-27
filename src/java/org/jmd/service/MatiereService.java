@@ -392,7 +392,7 @@ public class MatiereService {
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
                 m.setIsRattrapable(results.getBoolean("MATIERE.IS_RATTRAPABLE"));
                 m.setNoteMini(results.getFloat("MATIERE.NOTE_MINI"));
-                
+
                 matieres.add(m);
             }
         } catch (SQLException ex) {

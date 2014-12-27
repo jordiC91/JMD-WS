@@ -14,33 +14,37 @@ public class UE {
     /**
      * L'identifiant de l'UE.
      */
+    @XmlElement(name="idUE")
     private int idUE;
     
     /**
      * Le nom de l'UE.
      */
+    @XmlElement(name="nom")
     private String nom;
     
     /**
      * Le type de l'UE (SEMESTRE 1/2, TRIMESTRE 1/2, ...).
      */
+    @XmlElement(name="yearType")
     private String yearType;
     
     /**
      * L'identifiant de l'année à laquelle est rattachée l'UE.
      */
+    @XmlElement(name="idAnnee")
     private int idAnnee;
     
     /**
      * La note minimale de l'UE.
      */
-    @XmlElement
+    @XmlElement(name="noteMini")
     private Float noteMini;
     
     /**
      * La liste des matières de l'UE.
      */
-    @XmlElement
+    @XmlElement(name="matieres")
     private ArrayList<Matiere> matieres;
     
     /**
@@ -149,7 +153,7 @@ public class UE {
     public void setIdAnnee(int idAnnee) {
         this.idAnnee = idAnnee;
     }
-
+    
     /**
      * Méthode permettant de modifier la note minimale de l'UE
      * @param noteMini La nouvelle note minimale de l'UE

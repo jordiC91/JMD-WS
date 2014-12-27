@@ -1,5 +1,6 @@
 package org.jmd.metier;
 
+import javax.xml.bind.annotation.XmlElement;
 import javax.xml.bind.annotation.XmlRootElement;
 
 /**
@@ -13,11 +14,13 @@ public class Diplome {
     /**
      * L'identifiant du diplôme.
      */
+    @XmlElement(name="idDiplome")
     private int idDiplome;
     
     /**
      * Le nom du diplôme.
      */
+    @XmlElement(name="nom")
     private String nom;
     
     /**

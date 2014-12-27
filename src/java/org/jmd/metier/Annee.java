@@ -16,6 +16,7 @@ public class Annee {
     /**
      * L'identifiant de l'année.
      */
+    @XmlElement(name="idAnnee")
     private int idAnnee;
     
     /**
@@ -33,16 +34,19 @@ public class Annee {
     /**
      * Booléen permettant de savoir si l'année est la dernière du diplôme.
      */
+    @XmlElement(name="isLastYear")
     private boolean isLastYear;
     
     /**
      * L'identifiant de l'établissement de l'année.
      */
+    @XmlElement(name="idEtablissement")
     private int idEtablissement;
     
     /**
      * L'identifiant du diplôme dont fait partie l'année.
      */
+    @XmlElement(name="idDiplome")
     private int idDiplome;
     
     /**
@@ -62,11 +66,13 @@ public class Annee {
     /**
      * Le nom du diplôme lié où l'année est rattachée.
      */
+    @XmlElement(name="nomDiplome")
     private String nomDiplome;
     
     /**
      * L'établissement où l'année est rattachée.
      */
+    @XmlElement(name="eta")
     private Etablissement eta;
     
     /**
