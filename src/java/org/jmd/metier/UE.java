@@ -142,19 +142,19 @@ public class UE {
         this.idAnnee = idAnnee;
     }
 
+    /**
+     * Méthode permettant de récupérer la note minimale de l'UE
+     * @return La note minimale de l'UE
+     */
     public Float getNoteMinimale() {
         return noteMinimale;
     }
 
+    /**
+     * Méthode permettant de modifier la note minimale de l'UE
+     * @param noteMinimale La nouvelle note minimale de l'UE
+     */
     public void setNoteMinimale(Float noteMinimale) {
         this.noteMinimale = noteMinimale;
-    }
-
-    public ArrayList<Matiere> getMatieres() {
-        return matieres;
-    }
-
-    public void setMatieres(ArrayList<Matiere> matieres) {
-        this.matieres = matieres;
     }
 }
