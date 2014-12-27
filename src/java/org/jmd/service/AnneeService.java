@@ -259,13 +259,11 @@ public class AnneeService {
         Statement stmt1 = null;
         Statement stmt2 = null;
         Statement stmt3 = null;
-        Statement stmt4 = null;
         
         ResultSet results1 = null;
         ResultSet results2 = null;
         ResultSet results3 = null;
-        ResultSet results4 = null;
-        
+
         try {
             connexion = SQLUtils.getConnexion();
             
@@ -294,33 +292,6 @@ public class AnneeService {
                 e.setNom(results1.getString("ETABLISSEMENT.NOM"));
                 
                 a.setEtablissement(e);
-
-                // Récupération des règles de l'année
-                stmt4 = connexion.createStatement();
-                results4 = stmt4.executeQuery("SELECT * "
-                                                + "FROM ANNEE, REGLE "
-                                                + "WHERE (ANNEE.ID = REGLE.ID_ANNEE) "
-                                                + "AND (ANNEE.ID = " + a.getIdAnnee() + ");");
-
-                ArrayList<Regle> listeRegles = new ArrayList<>();
-                Regle r = null;
-
-                while (results4.next()) {
-                    r = new Regle();
-                    r.setId(results4.getInt("REGLE.ID"));
-                    r.setIdAnnee(results4.getInt("REGLE.ID_ANNEE"));
-                    r.setIdUE(results4.getInt("REGLE.ID_UE"));
-                    r.setOperateur(results4.getInt("REGLE.OPERATEUR"));
-                    r.setRegle(results4.getInt("REGLE.REGLE"));
-                    r.setValeur(results4.getInt("REGLE.VALEUR"));
-
-                    listeRegles.add(r);
-                }
-
-                a.setListeRegles(listeRegles);
-                        
-                results4.close();
-                stmt4.close();
                 
                 // Récupération des UEs pour une année
                 stmt2 = connexion.createStatement();
