@@ -5,7 +5,7 @@ import javax.xml.bind.annotation.*;
 
 /**
  * Classe représentant une UE.
- * 
+ *
  * @author jordi charpentier - yoann vanhoeserlande
  */
 @XmlRootElement
@@ -32,23 +32,29 @@ public class UE {
     private int idAnnee;
     
     /**
+     * La note minimale de l'UE.
+     */
+    @XmlElement
+    private Float noteMinimale;
+    
+    /**
      * La liste des matières de l'UE.
      */
     @XmlElement
     private ArrayList<Matiere> matieres;
-
+    
     /**
      * Constructeur par défaut de la classe.
      */
     public UE () {
-    
+        
     }
     
     /**
      * Méthode permettant d'ajouter une matière à l'UE.
-     * 
+     *
      * @param matiere La matière à ajouter.
-     * 
+     *
      * @return <b>true</b> si l'ajout s'est bien déroulé.
      * <b>false</b> sinon.
      */
@@ -64,7 +70,7 @@ public class UE {
     
     /**
      * Méthode retournant l'identifiant de l'UE.
-     * 
+     *
      * @return L'identifiant de l'UE.
      */
     public int getIdUE() {
@@ -73,8 +79,8 @@ public class UE {
     
     /**
      * Méthode retournant le nom de l'UE.
-     * 
-     * @return Le nom de l'UE. 
+     *
+     * @return Le nom de l'UE.
      */
     public String getNom() {
         return this.nom;
@@ -82,7 +88,7 @@ public class UE {
     
     /**
      * Méthode retournant le type de l'UE.
-     * 
+     *
      * @return Le type de l'UE (SEMESTRE 1/2, TRIMESTRE 1/2, ...).
      */
     public String getYearType() {
@@ -91,7 +97,7 @@ public class UE {
     
     /**
      * Méthode retournant l'identifiant de l'année à laquelle l'UE est rattachée.
-     * 
+     *
      * @return L'identifiant de l'année à laquelle est rattachée l'UE.
      */
     public int getIdAnnee() {
@@ -99,10 +105,10 @@ public class UE {
     }
     
     /* Setters. */
-
+    
     /**
      * Méthode permettant de modifier l'identifiant de l'UE.
-     * 
+     *
      * @param idUE Le nouvel identifiant de l'UE.
      */
     public void setIdUE(int idUE) {
@@ -111,7 +117,7 @@ public class UE {
     
     /**
      * Méthode permettant de modifier le nom de l'UE.
-     * 
+     *
      * @param nom Le nouveau nom de l'UE.
      */
     public void setNom(String nom) {
@@ -120,7 +126,7 @@ public class UE {
     
     /**
      * Méthode permettant de modifier le type de l'UE.
-     * 
+     *
      * @param yearType Le nouveau type de l'UE.
      */
     public void setYearType(String yearType) {
@@ -129,10 +135,26 @@ public class UE {
     
     /**
      * Méthode permettant de modifier l'identifiant de l'année.
-     * 
+     *
      * @param idAnnee Le nouvel identifiant de l'année.
      */
     public void setIdAnnee(int idAnnee) {
         this.idAnnee = idAnnee;
+    }
+
+    public Float getNoteMinimale() {
+        return noteMinimale;
+    }
+
+    public void setNoteMinimale(Float noteMinimale) {
+        this.noteMinimale = noteMinimale;
+    }
+
+    public ArrayList<Matiere> getMatieres() {
+        return matieres;
+    }
+
+    public void setMatieres(ArrayList<Matiere> matieres) {
+        this.matieres = matieres;
     }
 }
