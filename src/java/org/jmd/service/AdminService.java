@@ -705,10 +705,9 @@ public class AdminService {
         return Response.status(200).build();
     }
     
-    /**
+     /**
      * Méthode permettant de clôturer un compte admin.
      *
-     * @param closedAdminNickname Le pseudo du compte de l'administrateur à clôturer.
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
@@ -725,8 +724,85 @@ public class AdminService {
     @Path("closeAdminAccount")
     @GET
     public Response closeAdminAccount(
-            @QueryParam("closedAdminNickname")
-                    String closedAdminNickname,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+        Connection connexion = SQLUtils.getConnexion();
+        Statement stmt = null;
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                stmt = connexion.createStatement();
+                
+                // ADMIN_FOLLOWER
+                
+                
+                stmt.executeUpdate("DELETE FROM ADMINISTRATEUR WHERE PSEUDO = '" + pseudo + "';");
+                stmt.close();
+                connexion.close();
+                return Response.status(200).build();
+            } else {
+                stmt.close();
+                connexion.close();
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            return Response.status(500).build();
+        }
+        finally {
+            if(stmt != null){
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null){
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
+    /**
+     * Méthode permettant de clôturer un compte admin.
+     *
+     *
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
+     *
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté
+     * (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la clôture.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @Path("deactivateAdminAccount")
+    @GET
+    public Response deactivateAdminAccount(
             @QueryParam("pseudo")
                     String pseudo,
             @QueryParam("token")

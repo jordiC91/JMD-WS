@@ -34,7 +34,6 @@ public class ApplicationConfig extends Application {
         resources.add(org.jmd.service.DiplomeService.class);
         resources.add(org.jmd.service.EtablissementService.class);
         resources.add(org.jmd.service.MatiereService.class);
-        resources.add(org.jmd.service.RegleService.class);
         resources.add(org.jmd.service.UEService.class);
     }
     
