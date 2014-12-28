@@ -34,9 +34,6 @@ public class SQLUtils {
             
             // Glassfish Kimsufi
             conn = DriverManager.getConnection(url, "jordi", "Ce^7;a#F0TO@(1kO0e9m");
-            
-            // Glassfish local
-            // conn = DriverManager.getConnection(url, "root", "");
         } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | SQLException ex) {
             Logger.getLogger(SQLUtils.class.getName()).log(Level.SEVERE, null, ex);
         } 

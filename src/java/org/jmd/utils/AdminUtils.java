@@ -1,6 +1,5 @@
 package org.jmd.utils;
 
-import java.security.*;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
@@ -8,8 +7,7 @@ import javax.mail.*;
 import javax.mail.Transport;
 import javax.mail.internet.*;
 import org.jmd.Constantes;
-import org.jmd.service.AdminService;
-import org.jmd.service.DiplomeService;
+import org.jmd.service.*;
 
 /**
  * Classe comprenant des méthodes communes aux admins. Exemple : vérification de
@@ -112,7 +110,9 @@ public class AdminUtils {
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
+        } 
+        
+        finally {
             if (results != null) {
                 try {
                     results.close();
@@ -120,6 +120,7 @@ public class AdminUtils {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (stmt != null) {
                 try {
                     stmt.close();
@@ -127,6 +128,7 @@ public class AdminUtils {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null) {
                 try {
                     connexion.close();
@@ -175,7 +177,9 @@ public class AdminUtils {
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
+            } 
+            
+            finally {
                 if (results != null) {
                     try {
                         results.close();
@@ -248,7 +252,9 @@ public class AdminUtils {
                 stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
-            } finally {
+            } 
+            
+            finally {
                 if (results != null) {
                     try {
                         results.close();
@@ -295,7 +301,9 @@ public class AdminUtils {
             stmt.close();
         } catch (SQLException ex) {
             Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
-        } finally {
+        } 
+        
+        finally {
             if (stmt != null) {
                 try {
                     stmt.close();

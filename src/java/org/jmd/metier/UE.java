@@ -115,16 +115,18 @@ public class UE {
     }
     
     /**
-     * Méthode permettant de récupérer la note minimale de l'UE
-     * @return La note minimale de l'UE
+     * Méthode retournant la note minimale de l'UE.
+     * 
+     * @return La note minimale de l'UE.
      */
     public Float getNoteMini() {
         return noteMini;
     }
 
     /**
-     *
-     * @return
+     * Méthode retournant le nombre d'option minimum de l'UE.
+     * 
+     * @return Le nombre d'option minimum de l'UE.
      */
     public int getNbOptionMini() {
         return nbOptionMini;
@@ -169,16 +171,18 @@ public class UE {
     }
     
     /**
-     * Méthode permettant de modifier la note minimale de l'UE
-     * @param noteMini La nouvelle note minimale de l'UE
+     * Méthode permettant de modifier la note minimale de l'UE.
+     * 
+     * @param noteMini La nouvelle note minimale de l'UE.
      */
     public void setNoteMini(Float noteMini) {
         this.noteMini = noteMini;
     }
 
     /**
-     *
-     * @param nbOptionMini
+     * Méthode permettant de modifier le nombre d'option minimum de l'UE.
+     * 
+     * @param nbOptionMini Le nouveau nombre d'option minimum de l'UE.
      */
     public void setNbOptionMini(int nbOptionMini) {
         this.nbOptionMini = nbOptionMini;

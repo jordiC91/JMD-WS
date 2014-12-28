@@ -39,7 +39,7 @@ public class Matiere {
     private boolean isRattrapable;
     
     @XmlElement(name="noteMini")
-    private float noteMini;
+    private double noteMini;
     
     /**
      * Constructeur par défaut de la classe.
@@ -91,7 +91,7 @@ public class Matiere {
         return this.isRattrapable;
     }
     
-    public float getNoteMini() {
+    public double getNoteMini() {
         return this.noteMini;
     }
     
@@ -138,7 +138,7 @@ public class Matiere {
         this.isRattrapable = isRattrapable;
     }
     
-    public void setNoteMini(float noteMini) {
+    public void setNoteMini(double noteMini) {
         this.noteMini = noteMini;
     }
 }

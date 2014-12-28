@@ -29,7 +29,7 @@ public class UEService {
      * @param nom Le nom de l'UE à créer.
      * @param yearType Type de l'année (NULL/SEMESTRE/TRIMESTRE)
      * @param noteMinimale La note minimale de l'UE
-     * @param nbOptMini
+     * @param nbOptMini Le nombre d'option minimum de l'UE (optionnel).
      * @param idAnnee ID de l'année à laquelle l'UE appartient.
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
@@ -50,9 +50,11 @@ public class UEService {
                     String nom,
             @QueryParam("yearType")
                     String yearType,
-            @DefaultValue("-1") @QueryParam("noteMinimale")
+            @DefaultValue("-1") 
+            @QueryParam("noteMinimale")
                     final int noteMinimale,
-            @DefaultValue("0") @QueryParam("nbOptMini")
+            @DefaultValue("0") 
+            @QueryParam("nbOptMini")
                     final int nbOptMini,
             @QueryParam("idAnnee")
                     final int idAnnee,
@@ -93,6 +95,7 @@ public class UEService {
                 
                 return Response.status(500).build();
             }
+            
             finally {
                 if (stmt != null){
                     try {
@@ -154,12 +157,12 @@ public class UEService {
         Connection connexion = null;
         Statement stmt = null;
         ResultSet r = null;
+        
         int idAnnee = 0;
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
-                stmt = connexion.createStatement();
                 
                 stmt = connexion.createStatement();
                 r = stmt.executeQuery("SELECT UE.ID_ANNEE " +
@@ -172,8 +175,19 @@ public class UEService {
                 
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID_UE = " + id + ")");
                 stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
+                
+                r.close();
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if (r != null){
+                    try {
+                        r.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
                 
                 if (stmt != null){
                     try {
@@ -193,6 +207,7 @@ public class UEService {
                 
                 return Response.status(500).build();
             }
+            
             finally {
                 if (stmt != null) {
                     try {
@@ -216,6 +231,8 @@ public class UEService {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
+                   Logger.getLogger(UEService.class.getName()).log(Level.INFO, pseudo + "-" + idAnneeT);
+                    
                    AdminUtils.notify(pseudo, idAnneeT);
                 }
             }).start();

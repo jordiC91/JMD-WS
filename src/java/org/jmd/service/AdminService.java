@@ -730,33 +730,61 @@ public class AdminService {
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
+        
         Connection connexion = SQLUtils.getConnexion();
+        
+        ResultSet r = null;
+                
         Statement stmt = null;
+        Statement stmt2 = null;
+        Statement stmt3 = null;
+        
+        int idAdmin = 0;
+        
         try {
-            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {                
                 stmt = connexion.createStatement();
+                r = stmt.executeQuery("SELECT ADMINISTRATEUR.ID "
+                                    + "FROM ADMINISTRATEUR "
+                                    + "WHERE (ADMINISTRATEUR.PSEUDO = '" + pseudo + "');");
                 
-                // ADMIN_FOLLOWER
+                while (r.next()) {
+                    idAdmin = r.getInt("ADMINISTRATEUR.ID");
+                }
                 
-                
-                stmt.executeUpdate("DELETE FROM ADMINISTRATEUR WHERE PSEUDO = '" + pseudo + "';");
+                r.close();
                 stmt.close();
+                
+                stmt2 = connexion.createStatement();
+                stmt2.executeUpdate("DELETE FROM ADMIN_FOLLOWER WHERE ID_ADMIN = " + idAdmin + ";");
+                
+                stmt2.close();
+                
+                stmt3 = connexion.createStatement();
+                stmt3.executeUpdate("DELETE FROM ADMINISTRATEUR WHERE PSEUDO = '" + pseudo + "';");
+                
+                stmt3.close();
+                
                 connexion.close();
+                
                 return Response.status(200).build();
             } else {
                 stmt.close();
                 connexion.close();
+                
                 return Response.status(401).build();
             }
         } catch (SQLException ex) {
             Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
-            if(stmt != null){
+            
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException exc) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
@@ -764,16 +792,19 @@ public class AdminService {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
+            
             return Response.status(500).build();
         }
+        
         finally {
-            if(stmt != null){
+            if (stmt != null){
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
