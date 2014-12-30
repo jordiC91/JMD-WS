@@ -2,7 +2,7 @@
 
 This Github project is a module containing all the web services of JMD. These services are used by our two applications : Android and iOS. 
 
-# Presentation of JMD
+### Presentation of JMD
 
 JMD ('J'ai Mon Diplôme' in French, 'I Have My Diploma' in English) is a university project started in "M1 MIAGE" and finished in "M2 MIAGE" by Jordi CHARPENTIER and Yoann VANHOESERLANDE. 
 
@@ -34,13 +34,13 @@ For each of those services, at least 2 methods are exposed ("create" and "delete
 - UEService 
 - MatiereService 
  
-# Login process 
+### Login process 
 
 We store in our database the password hashed (SHA256) and salted and the used salt (one different salt for each user).
 When a user wants to log, the application sends his hashed password. 
 The login method will do CALCULATED_PASSWORSD = SHA256(PASSWORD_RECEIVED + SALT_IN_DATABASE). If the calculated password is the same as the stored password, this is OK. Otherwise, a 401 error is returned. 
 
-# Security in our services
+### Security in our services
 
 When a service require an admin right, we "secured it" with our means. With each request, it have to receive the nickname of the admin calling the service, the current timestamp (to avoid replay attack) and the token of the admin. The token is a random string generated when a user is logging into JMD and stored for each of them. A token expire after 15 minutes of inactivity.
 If the token, the timestamp or the nickname is incorrect, a 401 error is returned.
