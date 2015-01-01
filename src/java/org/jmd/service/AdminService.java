@@ -427,10 +427,13 @@ public class AdminService {
             while (results.next()) {
                 emailAdmin = results.getString("EMAIL");
             }
+            
             results.close();
+            
             if (emailAdmin.length() == 0) {
                 stmt.close();
                 connexion.close();
+                
                 return Response.status(404).entity("ADMIN_NOT_FOUND").build();
             }
             
@@ -580,6 +583,186 @@ public class AdminService {
     }
     
     /**
+     * Méthode permettant d'ajouter un appareil Android à un admin.
+     * 
+     * @param idGCM L'identifiant de l'appareil une fois enregistré à GCM.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
+     * requête. Permet d'éviter les rejeux.
+     * 
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté (donc autorisé).
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 403 si l'appareil à ajouter existe déjà en base.
+     * - Un code HTTP 500 si une erreur SQL se produit. 
+     */
+    @Path("registerAndroidDevice")
+    @PUT
+    public Response registerAndroidDevice(@QueryParam("idGCM") 
+                                              String idGCM,
+                                          @QueryParam("pseudo") 
+                                              String pseudo,
+                                          @QueryParam("token") 
+                                              String token,
+                                          @QueryParam("timestamp") 
+                                              long timestamp) {
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+                connexion = SQLUtils.getConnexion();
+                
+                // Récupération de l'identifiant de l'admin.
+                
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT * FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
+            
+                int idAdmin = 0;
+            
+                while (results.next()) {
+                    idAdmin = results.getInt("ID");
+                }
+
+                results.close();
+                stmt.close();
+                
+                // Insertion de l'appareil en base.
+                
+                stmt = connexion.createStatement();
+                stmt.execute("INSERT INTO ADMIN_ANDROID (ID_ADMIN, GCM_ID) VALUES (" + idAdmin + ", '" + idGCM + "');");
+                stmt.close();
+                
+                connexion.close();
+                
+                return Response.status(200).build();
+            } else {
+                return Response.status(401).build();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (ex instanceof MySQLIntegrityConstraintViolationException) {
+                return Response.status(403).entity("DUPLICATE_ENTRY").build();
+            }
+            
+            return Response.status(500).build();
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
+    @Path("unregisterAndroidDevice")
+    @PUT
+    public Response unregisterAndroidDevice(@QueryParam("idGCM") 
+                                              String idGCM,
+                                          @QueryParam("pseudo") 
+                                              String pseudo,
+                                          @QueryParam("token") 
+                                              String token,
+                                          @QueryParam("timestamp") 
+                                              long timestamp) {
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        
+        if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
+            try {
+                connexion = SQLUtils.getConnexion();
+                
+                stmt = connexion.createStatement();
+                stmt.executeUpdate("DELETE FROM ADMIN_ANDROID WHERE (GCM_ID  = " + idGCM + ");");
+                
+                stmt.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                if (stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }
+                
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException exc) {
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
+                    }
+                }     
+                
+                return Response.status(500).build();
+            }
+            finally {
+                if (stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                
+                if (connexion != null) {
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+            
+            return Response.status(200).build();
+        } else {
+            return Response.status(401).build();
+        }
+    }
+    
+    /**
      * Méthode permettant de faire la réinitialisation du mot de passe.
      *
      * @param pseudo Le pseudo de la personne ayant fait la demande.
@@ -598,6 +781,7 @@ public class AdminService {
                     String pseudo,
             @QueryParam("code")
                     String code) {
+        
         Connection connexion = SQLUtils.getConnexion();
         Statement stmt = null;
         ResultSet results = null;
@@ -669,6 +853,7 @@ public class AdminService {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
                 }
             }
+            
             if (connexion != null){
                 try {
                     connexion.close();
@@ -678,22 +863,25 @@ public class AdminService {
             }
             return Response.status(500).build();
         }
+        
         finally {
-            if( results != null ) {
+            if (results != null) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
@@ -707,7 +895,6 @@ public class AdminService {
     
      /**
      * Méthode permettant de clôturer un compte admin.
-     *
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.

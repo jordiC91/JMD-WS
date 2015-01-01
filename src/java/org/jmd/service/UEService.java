@@ -118,6 +118,7 @@ public class UEService {
                 @Override
                 public void run() {
                    AdminUtils.notify(pseudo, idAnnee);
+                   AdminUtils.notifyAndroid(pseudo, idAnnee);
                 }
             }).start();
 
@@ -231,9 +232,8 @@ public class UEService {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   Logger.getLogger(UEService.class.getName()).log(Level.INFO, pseudo + "-" + idAnneeT);
-                    
                    AdminUtils.notify(pseudo, idAnneeT);
+                   AdminUtils.notifyAndroid(pseudo, idAnneeT);
                 }
             }).start();
             

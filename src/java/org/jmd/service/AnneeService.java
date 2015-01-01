@@ -42,7 +42,8 @@ public class AnneeService {
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
-     * qui a fait la demande. - Un code HTTP 403 si l'année à créer existe déjà en base.
+     * qui a fait la demande. 
+     * - Un code HTTP 403 si l'année à créer existe déjà en base.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @PUT
@@ -131,10 +132,14 @@ public class AnneeService {
      */
     @DELETE
     public Response supprimer(
-            @QueryParam("id") String id,
-            @QueryParam("pseudo") String pseudo,
-            @QueryParam("token") String token,
-            @QueryParam("timestamp") long timestamp) {
+            @QueryParam("id") 
+                final int id,
+            @QueryParam("pseudo") 
+                final String pseudo,
+            @QueryParam("token") 
+                String token,
+            @QueryParam("timestamp") 
+                long timestamp) {
         
         Connection connexion = null;
         Statement stmt1 = null;
@@ -234,6 +239,14 @@ public class AnneeService {
         } else {
             return Response.status(401).build();
         }
+        
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                AdminUtils.notify(pseudo, id);
+                AdminUtils.notifyAndroid(pseudo, id);
+            }
+        }).start();
         
         return Response.status(200).build();
     }

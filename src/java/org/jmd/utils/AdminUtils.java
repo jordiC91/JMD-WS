@@ -1,5 +1,7 @@
 package org.jmd.utils;
 
+import com.google.android.gcm.server.MulticastResult;
+import com.google.android.gcm.server.Sender;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
@@ -45,12 +47,12 @@ public class AdminUtils {
         properties.put("mail.smtp.socketFactory.fallback", "false");
         
         Session session = Session.getInstance(properties,
-                new javax.mail.Authenticator() {
-                    @Override
-                    protected PasswordAuthentication getPasswordAuthentication() {
-                        return new PasswordAuthentication(Constantes.EMAIL_JMD, Constantes.PASSWORD_JMD);
-                    }
+            new javax.mail.Authenticator() {
+                @Override
+                protected PasswordAuthentication getPasswordAuthentication() {
+                    return new PasswordAuthentication(Constantes.EMAIL_JMD, Constantes.PASSWORD_JMD);
                 }
+            }
         );
         
         try {
@@ -63,7 +65,7 @@ public class AdminUtils {
             
             Transport.send(message);
         } catch (MessagingException e) {
-            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 
@@ -109,7 +111,7 @@ public class AdminUtils {
             results.close();
             stmt.close();
         } catch (SQLException ex) {
-            Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
         } 
         
         finally {
@@ -117,7 +119,7 @@ public class AdminUtils {
                 try {
                     results.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             
@@ -125,7 +127,7 @@ public class AdminUtils {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
             
@@ -133,9 +135,78 @@ public class AdminUtils {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {
-                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
+        }
+    }
+    
+    public static void notifyAndroid(String pseudo, int idAnnee) {
+        try {
+            Sender sender = new Sender("AIzaSyCpawXxdzAN8rlfReinli1SZQSd-Hu70P4");
+
+            Connection connexion = SQLUtils.getConnexion();
+            
+            Statement stmt = connexion.createStatement();
+            ResultSet results = null;
+            
+            ArrayList<String> devicesList = new ArrayList<String>();
+            
+            results = stmt.executeQuery("SELECT * "
+                    + "FROM ANNEE, ADMINISTRATEUR, ADMIN_ANDROID, ADMIN_FOLLOWER "
+                    + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) AND "
+                    + "(ADMINISTRATEUR.ID = ADMIN_ANDROID.ID_ADMIN) AND "
+                    + "(ANNEE.ID = " + idAnnee + ");");
+
+            while (results.next()) {
+                devicesList.add(results.getString("GCM_ID"));
+            }
+
+            results.close();
+            stmt.close();            
+
+            // Création du message à envoyer.
+            
+            String messageToSend = "";
+            
+            Statement stmt2 = connexion.createStatement();
+            ResultSet results2 = null;
+            
+            results2 = stmt2.executeQuery("SELECT * "
+                    + "FROM DIPLOME, ANNEE, ADMINISTRATEUR, ADMIN_FOLLOWER "
+                    + "WHERE (DIPLOME.ID = ANNEE.ID_DIPLOME) "
+                        + "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
+                        + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
+                        + "AND (ANNEE.ID = " + idAnnee + ");");
+
+            while (results2.next()) {
+                if (results2.getInt("ANNEE.ID") == idAnnee) {                                        
+                    messageToSend = "Màj sur \'" + ((results2.getString("ANNEE.NOM").length() > 17) ? results2.getString("ANNEE.NOM").substring(0, 17) + "..." : results2.getString("ANNEE.NOM")) + "\' par \'" + results2.getString("ADMINISTRATEUR.PSEUDO") + "\'";
+                    
+                    break;
+                }
+            }
+
+            results2.close();
+            stmt2.close();
+            
+            // Création du message GCM.
+            
+            com.google.android.gcm.server.Message message = new com.google.android.gcm.server.Message.Builder()
+                .collapseKey("1")
+                .timeToLive(3)
+                .delayWhileIdle(true)
+                .addData("message", messageToSend)
+            .build();
+
+            MulticastResult result = sender.send(message, devicesList, 1);
+            sender.send(message, devicesList, 1);
+            
+            if (result.getResults() == null) {
+                Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, "Erreur : " + result.getFailure());
+            } 
+        } catch (Exception ex) {
+           Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
@@ -176,7 +247,7 @@ public class AdminUtils {
                 results.close();
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
             } 
             
             finally {
@@ -184,21 +255,21 @@ public class AdminUtils {
                     try {
                         results.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
                 if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
                 if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -248,10 +319,11 @@ public class AdminUtils {
                         logout(pseudo);
                     }
                 }
+                
                 results.close();
                 stmt.close();
             } catch (SQLException ex) {
-                Logger.getLogger(DiplomeService.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
             } 
             
             finally {
@@ -259,21 +331,23 @@ public class AdminUtils {
                     try {
                         results.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (stmt != null) {
                     try {
                         stmt.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
+                
                 if (connexion != null) {
                     try {
                         connexion.close();
                     } catch (SQLException ex) {
-                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 }
             }
@@ -294,11 +368,13 @@ public class AdminUtils {
 
         try {
             connexion = SQLUtils.getConnexion();
+            
             stmt = connexion.createStatement();
             stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TOKEN = 'NULL' WHERE PSEUDO = '" + pseudo + "';");
             stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = '0' WHERE PSEUDO = '" + pseudo + "';");
-
             stmt.close();
+            
+            connexion.close();
         } catch (SQLException ex) {
             Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
         } 

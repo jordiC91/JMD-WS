@@ -153,6 +153,7 @@ public class MatiereService {
                 @Override
                 public void run() {
                    AdminUtils.notify(pseudo, idAnneeFin);
+                   AdminUtils.notifyAndroid(pseudo, idAnneeFin);
                 }
             }).start();
             
@@ -277,6 +278,7 @@ public class MatiereService {
                 @Override
                 public void run() {
                    AdminUtils.notify(pseudo, idAnneeFin);
+                   AdminUtils.notifyAndroid(pseudo, idAnneeFin);
                 }
             }).start();
             
