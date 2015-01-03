@@ -153,10 +153,11 @@ public class AdminUtils {
             ArrayList<String> devicesList = new ArrayList<String>();
             
             results = stmt.executeQuery("SELECT * "
-                    + "FROM ANNEE, ADMINISTRATEUR, ADMIN_ANDROID, ADMIN_FOLLOWER "
-                    + "WHERE (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) AND "
-                    + "(ADMINISTRATEUR.ID = ADMIN_ANDROID.ID_ADMIN) AND "
-                    + "(ANNEE.ID = " + idAnnee + ");");
+                + "FROM ANNEE, ADMINISTRATEUR, ADMIN_ANDROID, ADMIN_FOLLOWER "
+                + "WHERE (ANNEE.ID = " + idAnnee + ") "
+                + "AND (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) " 
+                + "AND (ANNEE.ID = ADMIN_FOLLOWER.ID_ANNEE) "
+                + "AND (ADMINISTRATEUR.ID = ADMIN_ANDROID.ID_ADMIN)");
 
             while (results.next()) {
                 devicesList.add(results.getString("GCM_ID"));
