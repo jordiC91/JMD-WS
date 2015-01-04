@@ -8,5 +8,5 @@ nbproject/
 build.xml
 web/index.html
 lib/
-src/java/org/jmd/SQLUtils.java
+src/java/org/jmd/utils/SQLUtils.java
 src/java/org/jmd/utils/IOSUtils.java
