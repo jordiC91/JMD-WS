@@ -98,6 +98,7 @@ public class AdminUtils {
             results = stmt.executeQuery("SELECT * "
                     + "FROM ADMINISTRATEUR, ADMIN_FOLLOWER "
                     + "WHERE (ADMINISTRATEUR.ID = ADMIN_FOLLOWER.ID_ADMIN) "
+                    + "AND (ADMINISTRATEUR.ACCEPT_MAIL = 1)"
                     + "AND (ADMIN_FOLLOWER.ID_ANNEE = " + idAnnee + ") "
                     + "AND (ADMIN_FOLLOWER.ID_ADMIN <> "+ exceptIdAdmin +");");
             

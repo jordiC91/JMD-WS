@@ -46,6 +46,7 @@ public class AdminService {
                     String pseudo,
             @FormParam("password")
                     String password) {
+        
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
@@ -64,6 +65,7 @@ public class AdminService {
                     results.close();
                     stmt.close();
                     connexion.close();
+                    
                     return Response.status(401).build();
                 }
                 
@@ -71,6 +73,7 @@ public class AdminService {
                     results.close();
                     stmt.close();
                     connexion.close();
+                    
                     return Response.status(403).build();
                 }
                 
@@ -491,6 +494,154 @@ public class AdminService {
     }
     
     /**
+     * Méthode permettant de savoir si un administrateur donné accepte l'envoi
+     * de mail ou non.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
+     *
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté 
+     * (donc autorisé) avec le booléen demandé.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @Path("isMailAccepted")
+    @GET
+    public Response isMailAccepted(
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+        
+        boolean isAccepted = false;
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        if (AdminUtils.checkToken(pseudo, token)) {
+            try {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                results = stmt.executeQuery("SELECT ACCEPT_MAIL " +
+                        "FROM ADMINISTRATEUR " +
+                        "WHERE (PSEUDO = '" + pseudo + "');");
+                
+                while (results.next()) {
+                    isAccepted = results.getBoolean("ACCEPT_MAIL");
+                }
+                
+                results.close();
+                
+                stmt.close();
+                connexion.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return Response.status(500).build();
+            }
+            
+            finally {
+                if (stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        } else {
+            return Response.status(401).build();
+        }
+        
+        return Response.status(200).entity(isAccepted).build();
+    }
+    
+    /**
+     * Méthode permettant de modifier le champ ACCEPT_MAIL pour un admin donné.
+     * 
+     * @param newValue La nouvelle valeur du booléen.
+     * 
+     * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
+     * @param token Le token envoyé par l'administrateur.
+     * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
+     * Permet d'éviter les rejeux.
+     *
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté 
+     * (donc autorisé) et si la modification s'est bien faite.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
+     * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @Path("acceptMail")
+    @PUT
+    public Response acceptMail(
+            @QueryParam("newValue")
+                    boolean newValue,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
+        
+        Connection connexion = null;
+        Statement stmt = null;
+        
+        if (AdminUtils.checkToken(pseudo, token)) {
+            try {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET ACCEPT_MAIL = " + newValue + " WHERE PSEUDO = '" + pseudo + "'");
+                
+                stmt.close();
+                connexion.close();
+            } catch (SQLException ex) {
+                Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                
+                return Response.status(500).build();
+            }
+            
+            finally {
+                if (stmt != null){
+                    try {
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+                if (connexion != null){
+                    try {
+                        connexion.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        } else {
+            return Response.status(401).build();
+        }
+        
+        return Response.status(200).build();
+    }
+    
+    /**
      * Méthode permettant de gérer la première étape de la demande de réinitialisation
      * de mot de passe d'un utilisateur (envoi d'un mail de confirmation).
      *
@@ -573,22 +724,25 @@ public class AdminService {
             }
             return Response.status(500).build();
         }
+        
         finally {
-            if( results != null ) {
+            if (results != null) {
                 try {
                     results.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if(stmt != null){
+            
+            if (stmt != null) {
                 try {
                     stmt.close();
                 } catch (SQLException ex) {
                     Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-            if (connexion != null){
+            
+            if (connexion != null) {
                 try {
                     connexion.close();
                 } catch (SQLException ex) {

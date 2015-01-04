@@ -158,11 +158,12 @@ public class UEService {
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
      *
-     * @return 2 possibilités :
+     * @return 3 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de suppression est
      * connecté (donc autorisé) et si la suppression s'est bien faite.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @DELETE
     public Response supprimer(
