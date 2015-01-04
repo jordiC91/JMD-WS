@@ -810,7 +810,7 @@ public class AdminService {
                 connexion = SQLUtils.getConnexion();
                 
                 stmt = connexion.createStatement();
-                stmt.executeUpdate("DELETE FROM ADMIN_ANDROID WHERE (GCM_ID  = " + idGCM + ");");
+                stmt.executeUpdate("DELETE FROM ADMIN_ANDROID WHERE (GCM_ID  = '" + idGCM + "');");
                 
                 stmt.close();
             } catch (SQLException ex) {
