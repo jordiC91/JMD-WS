@@ -7,4 +7,6 @@ nbproject/
 *.ear
 build.xml
 web/index.html
+lib/
 src/java/org/jmd/SQLUtils.java
+src/java/org/jmd/IOSUtils.java

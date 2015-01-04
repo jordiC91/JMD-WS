@@ -48,26 +48,27 @@ public class MatiereService {
     @PUT
     public Response creer(
             @QueryParam("nom")
-                    String nom,
+            final String nom,
             @QueryParam("coefficient")
-                    float coefficient,
+            final float coefficient,
             @QueryParam("isOption")
-                    boolean isOption,
+            final boolean isOption,
             @QueryParam("idUE")
-                    final int idUE,
+            final int idUE,
             @QueryParam("isRattrapable")
-                    boolean isRattrapable,
+            final boolean isRattrapable,
             @DefaultValue("-1.0")
             @QueryParam("noteMini")
-                    float noteMini,
+            final float noteMini,
             @QueryParam("pseudo")
-                    final String pseudo,
+            final String pseudo,
             @QueryParam("token")
-                    String token,
+            final String token,
             @QueryParam("timestamp")
-                    long timestamp) {
+            final long timestamp) {
         
         int idAnnee = 0;
+        String nomUE = "";
         
         Connection connexion = null;
         Statement stmt = null;
@@ -81,15 +82,15 @@ public class MatiereService {
                 stmt.close();
                 
                 stmt = connexion.createStatement();
-                r = stmt.executeQuery("SELECT ANNEE.ID "
-                                    + "FROM ANNEE, UE, MATIERE "
-                                    + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
-                                        + "AND (UE.ID = MATIERE.ID_UE) "
-                                        + "AND (UE.ID = " + idUE + ");");
+                r = stmt.executeQuery("SELECT ANNEE.ID, UE.NOM "
+                        + "FROM ANNEE, UE, MATIERE "
+                        + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
+                        + "AND (UE.ID = MATIERE.ID_UE) "
+                        + "AND (UE.ID = " + idUE + ");");
                 
-                while (r.next()) {
-                    idAnnee = r.getInt("ANNEE.ID");
-                }
+                r.next();
+                idAnnee = r.getInt("ANNEE.ID");
+                nomUE = r.getString("UE.NOM");
                 
                 r.close();
                 stmt.close();
@@ -121,7 +122,7 @@ public class MatiereService {
                 }
                 
                 return Response.status(500).build();
-            } 
+            }
             finally {
                 if (r != null){
                     try {
@@ -148,12 +149,33 @@ public class MatiereService {
             }
             
             final int idAnneeFin = idAnnee;
+            final String nomUEFin = nomUE;
             
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   AdminUtils.notify(pseudo, idAnneeFin);
-                   AdminUtils.notifyAndroid(pseudo, idAnneeFin);
+                    String message = "";
+                    try {
+                        Connection connexion = SQLUtils.getConnexion();
+                        Statement stmt = connexion.createStatement();
+                        
+                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                                "FROM ANNEE, DIPLOME " +
+                                "WHERE ANNEE.ID = " +idAnneeFin+" "+
+                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                        
+                        results.next();
+                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : la matière \""+ nom +"\" dans l'UE \""+nomUEFin+"\" a été créé par "+pseudo+".";
+                        results.close();
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
+                    AdminUtils.notifyMail(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyAndroid(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyiOS(message, idAnneeFin, exceptIdAdmin);
                 }
             }).start();
             
@@ -185,13 +207,15 @@ public class MatiereService {
             @QueryParam("id")
                     String id,
             @QueryParam("pseudo")
-                    final String pseudo,
+            final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
                     long timestamp) {
         
         int idAnnee = 0;
+        String nomUE = "";
+        String nomMatiere = "";
         
         Connection connexion = null;
         Statement stmt = null;
@@ -200,23 +224,27 @@ public class MatiereService {
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
+                
+                
+                stmt = connexion.createStatement();
+                r = stmt.executeQuery("SELECT ANNEE.ID, UE.NOM, MATIERE.NOM "
+                        + "FROM ANNEE, UE, MATIERE "
+                        + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
+                        + "AND (UE.ID = MATIERE.ID_UE) "
+                        + "AND (MATIERE.ID = " + id + ");");
+                
+                r.next();
+                idAnnee = r.getInt("ANNEE.ID");
+                nomUE = r.getString("UE.NOM");
+                nomMatiere = r.getString("MATIERE.NOM");
+                
+                r.close();
+                stmt.close();
+                
                 stmt = connexion.createStatement();
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + id + ")");
                 stmt.close();
                 
-                stmt = connexion.createStatement();
-                r = stmt.executeQuery("SELECT ANNEE.ID "
-                                    + "FROM ANNEE, UE, MATIERE "
-                                    + "WHERE (ANNEE.ID = UE.ID_ANNEE) "
-                                        + "AND (UE.ID = MATIERE.ID_UE) "
-                                        + "AND (MATIERE.ID = " + id + ");");
-                
-                while (r.next()) {
-                    idAnnee = r.getInt("ANNEE.ID");
-                }
-                
-                r.close();
-                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(MatiereService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -273,12 +301,34 @@ public class MatiereService {
             }
             
             final int idAnneeFin = idAnnee;
+            final String nomUEFin = nomUE;
+            final String nomMatiereFin = nomMatiere;
             
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   AdminUtils.notify(pseudo, idAnneeFin);
-                   AdminUtils.notifyAndroid(pseudo, idAnneeFin);
+                    String message = "";
+                    try {
+                        Connection connexion = SQLUtils.getConnexion();
+                        Statement stmt = connexion.createStatement();
+                        
+                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                                "FROM ANNEE, DIPLOME " +
+                                "WHERE ANNEE.ID = " +idAnneeFin+" "+
+                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                        
+                        results.next();
+                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : la matière \""+nomMatiereFin+"\" de l'UE \""+ nomUEFin +"\" a été supprimée par "+pseudo+".";
+                        results.close();
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
+                    AdminUtils.notifyMail(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyAndroid(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyiOS(message, idAnneeFin, exceptIdAdmin);
                 }
             }).start();
             
@@ -290,9 +340,9 @@ public class MatiereService {
     
     /**
      * Méthode permettant de récupérer l'ensemble des matières d'une UE.
-     * 
+     *
      * @param idUE L'identifiant de l'UE recherchée.
-     * 
+     *
      * @return La liste de l'ensemble des matières de l'UE spécifiée.
      */
     @GET
@@ -360,9 +410,9 @@ public class MatiereService {
     
     /**
      * Méthode permettant de récupérer l'ensemble des matières d'une année.
-     * 
+     *
      * @param idAnnee L'identifiant de l'année recherchée.
-     * 
+     *
      * @return La liste de l'ensemble des matières de l'année spécifiée.
      */
     @GET
@@ -394,7 +444,7 @@ public class MatiereService {
                 m.setIsOption(results.getBoolean("MATIERE.IS_OPTION"));
                 m.setIsRattrapable(results.getBoolean("MATIERE.IS_RATTRAPABLE"));
                 m.setNoteMini(results.getFloat("MATIERE.NOTE_MINI"));
-
+                
                 matieres.add(m);
             }
         } catch (SQLException ex) {

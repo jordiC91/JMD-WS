@@ -47,21 +47,21 @@ public class UEService {
     @PUT
     public Response creer(
             @QueryParam("nom")
-                    String nom,
+            final String nom,
             @QueryParam("yearType")
-                    String yearType,
-            @DefaultValue("-1") 
+            final String yearType,
+            @DefaultValue("-1")
             @QueryParam("noteMinimale")
-                    final int noteMinimale,
-            @DefaultValue("0") 
+            final int noteMinimale,
+            @DefaultValue("0")
             @QueryParam("nbOptMini")
-                    final int nbOptMini,
+            final int nbOptMini,
             @QueryParam("idAnnee")
-                    final int idAnnee,
+            final int idAnnee,
             @QueryParam("pseudo")
-                    final String pseudo,
+            final String pseudo,
             @QueryParam("token")
-                    String token,
+            final String token,
             @QueryParam("timestamp")
                     long timestamp) {
         
@@ -73,7 +73,7 @@ public class UEService {
                 connexion = SQLUtils.getConnexion();
                 stmt = connexion.createStatement();
                 stmt.execute("INSERT INTO UE (NOM, YEAR_TYPE, ID_ANNEE, NOTE_MINI, NB_OPT_MINI) VALUES ('" + nom + "','"+ yearType +"',"+idAnnee+","+noteMinimale+","+nbOptMini+");");
-                stmt.close(); 
+                stmt.close();
             } catch (SQLException ex) {
                 Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
                 
@@ -117,11 +117,31 @@ public class UEService {
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   AdminUtils.notify(pseudo, idAnnee);
-                   AdminUtils.notifyAndroid(pseudo, idAnnee);
+                    String message = "";
+                    try {
+                        Connection connexion = SQLUtils.getConnexion();
+                        Statement stmt = connexion.createStatement();
+                        
+                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                                "FROM ANNEE, DIPLOME " +
+                                "WHERE ANNEE.ID = " +idAnnee+" "+
+                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                        
+                        results.next();
+                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : l'UE \""+nom+"\" a été créée par "+pseudo+".";
+                        results.close();
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
+                    AdminUtils.notifyMail(message, idAnnee, exceptIdAdmin);
+                    AdminUtils.notifyAndroid(message, idAnnee, exceptIdAdmin);
+                    AdminUtils.notifyiOS(message, idAnnee, exceptIdAdmin);
                 }
             }).start();
-
+            
             return Response.status(200).build();
         } else {
             return Response.status(401).build();
@@ -147,9 +167,9 @@ public class UEService {
     @DELETE
     public Response supprimer(
             @QueryParam("id")
-                    final int id,
+            final int id,
             @QueryParam("pseudo")
-                    final String pseudo,
+            final String pseudo,
             @QueryParam("token")
                     String token,
             @QueryParam("timestamp")
@@ -160,19 +180,20 @@ public class UEService {
         ResultSet r = null;
         
         int idAnnee = 0;
+        String nomUE = "";
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
                 
                 stmt = connexion.createStatement();
-                r = stmt.executeQuery("SELECT UE.ID_ANNEE " +
+                r = stmt.executeQuery("SELECT UE.ID_ANNEE, UE.NOM " +
                         "FROM ANNEE, UE " +
                         "WHERE (UE.ID = " + id + ") AND (ANNEE.ID = UE.ID_ANNEE)");
-
-                while (r.next()) {
-                    idAnnee = r.getInt("UE.ID_ANNEE");
-                }
+                
+                r.next();
+                idAnnee = r.getInt("UE.ID_ANNEE");
+                nomUE = r.getString("UE.NOM");
                 
                 stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID_UE = " + id + ")");
                 stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
@@ -228,12 +249,33 @@ public class UEService {
             }
             
             final int idAnneeT = idAnnee;
+            final String nomUET = nomUE;
             
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                   AdminUtils.notify(pseudo, idAnneeT);
-                   AdminUtils.notifyAndroid(pseudo, idAnneeT);
+                    String message = "";
+                    try {
+                        Connection connexion = SQLUtils.getConnexion();
+                        Statement stmt = connexion.createStatement();
+                        
+                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                                "FROM ANNEE, DIPLOME " +
+                                "WHERE ANNEE.ID = " +idAnneeT+" "+
+                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                        
+                        results.next();
+                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : l'UE \""+ nomUET +"\" a été supprimée par "+pseudo+".";
+                        results.close();
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
+                    AdminUtils.notifyMail(message, idAnneeT, exceptIdAdmin);
+                    AdminUtils.notifyAndroid(message, idAnneeT, exceptIdAdmin);
+                    AdminUtils.notifyiOS(message, idAnneeT, exceptIdAdmin);
                 }
             }).start();
             
@@ -278,7 +320,7 @@ public class UEService {
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
                 ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
                 ue.setNbOptionMini(results.getInt("UE.NB_OPT_MINI"));
-
+                
                 UEs.add(ue);
             }
         } catch (SQLException ex) {
@@ -339,7 +381,7 @@ public class UEService {
         try {
             connexion = SQLUtils.getConnexion();
             stmt = connexion.createStatement();
-
+            
             results = stmt.executeQuery("SELECT DISTINCT UE.ID, UE.NOM, UE.YEAR_TYPE, UE.ID_ANNEE, UE.NOTE_MINI, UE.NB_OPT_MINI " +
                     "FROM ANNEE, UE " +
                     "WHERE (ANNEE.ID = " + idAnnee + ") AND (ANNEE.ID = UE.ID_ANNEE) AND (YEAR_TYPE ='" + yearType + "');");
@@ -353,7 +395,7 @@ public class UEService {
                 ue.setYearType(results.getString("UE.YEAR_TYPE"));
                 ue.setNoteMini(results.getFloat("UE.NOTE_MINI"));
                 ue.setNbOptionMini(results.getInt("UE.NB_OPT_MINI"));
-
+                
                 UEs.add(ue);
             }
         } catch (SQLException ex) {

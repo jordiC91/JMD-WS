@@ -42,7 +42,7 @@ public class AnneeService {
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande de création est connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
-     * qui a fait la demande. 
+     * qui a fait la demande.
      * - Un code HTTP 403 si l'année à créer existe déjà en base.
      * - Un code HTTP 500 si une erreur SQL se produit.
      */
@@ -132,14 +132,14 @@ public class AnneeService {
      */
     @DELETE
     public Response supprimer(
-            @QueryParam("id") 
-                final int id,
-            @QueryParam("pseudo") 
-                final String pseudo,
-            @QueryParam("token") 
-                String token,
-            @QueryParam("timestamp") 
-                long timestamp) {
+            @QueryParam("id")
+            final int id,
+            @QueryParam("pseudo")
+            final String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
         Connection connexion = null;
         Statement stmt1 = null;
@@ -188,8 +188,10 @@ public class AnneeService {
                 }
                 
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
+                stmt2.executeUpdate("DELETE FROM ADMIN_FOLLOWER WHERE (ID_ANNEE = " + id + ");");
+
                 stmt2.close();
-                
+
                 connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -243,8 +245,28 @@ public class AnneeService {
         new Thread(new Runnable() {
             @Override
             public void run() {
-                AdminUtils.notify(pseudo, id);
-                AdminUtils.notifyAndroid(pseudo, id);
+                    String message = "";
+                    try {
+                        Connection connexion = SQLUtils.getConnexion();
+                        Statement stmt = connexion.createStatement();
+                        
+                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                                "FROM ANNEE, DIPLOME " +
+                                "WHERE ANNEE.ID = " +id+" "+
+                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                        
+                        results.next();
+                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : Cette année a été supprimée par "+pseudo+".";
+                        results.close();
+                        stmt.close();
+                    } catch (SQLException ex) {
+                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
+                    }
+                    
+                    int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
+                    AdminUtils.notifyMail(message, id, exceptIdAdmin);
+                    AdminUtils.notifyAndroid(message, id, exceptIdAdmin);
+                    AdminUtils.notifyiOS(message, id, exceptIdAdmin);
             }
         }).start();
         

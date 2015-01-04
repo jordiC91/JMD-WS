@@ -134,17 +134,113 @@ public class AdminService {
     }
     
     /**
+     * Méthode permettant de connecter un utilisateur.
+     * Si les logins envoyés sont bons, le serveur génère un token (20 caractères)
+     * et l'envoie à l'utilisateur.
+     *
+     * @param pseudo Le pseudo de l'utilisateur.
+     * @param password Le mot de passe de l'utilisateur.
+     * @param token Le Token iOS du device de l'utilisateur.
+     *
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si les identifiants sont bons.
+     * - Un code HTTP 401 si les identifiants n'étaient pas bons.
+     * - Un code HTTP 403 si le compte n'est pas activé ou plus actif.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @POST
+    @Path("iOSlogin")
+    public Response iOSlogin(
+            @FormParam("username")
+                    String pseudo,
+            @FormParam("password")
+                    String password,
+            @FormParam("token")
+                    String token) {
+        
+                Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+                connexion = SQLUtils.getConnexion();
+                stmt = connexion.createStatement();
+                results = stmt.executeQuery("SELECT ID FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
+                
+                int idAdmin = 0;
+                
+                while (results.next()) {
+                    idAdmin = results.getInt("ID");
+                }
+                
+                results.close();
+                stmt.close();
+                if (idAdmin > 0){
+                    stmt = connexion.createStatement();
+                    stmt.execute("INSERT INTO ADMIN_IOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
+                    stmt.close();
+                    connexion.close();
+                }
+              
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return this.login(pseudo, password);
+    }
+    
+    /**
      * Méthode permettant à un administrateur de suivre les modifications d'une année.
-     * 
+     *
      * @param idAnnee L'identifiant de l'année à suivre.
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
-     * 
-     * @return 3 possibilités : 
-     * - Un code HTTP 200 si la demande de suivi se passe bien. 
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     *
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si la demande de suivi se passe bien.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      * - Un code HTTP 500 si une erreur SQL se produit.
      * - Un code HTTP 403 si l'année est déjà suivie pour l'admin spécifié.
      */
@@ -233,18 +329,18 @@ public class AdminService {
     }
     
     /**
-     * Méthode permettant à un administrateur d'arrêter de suivre les 
+     * Méthode permettant à un administrateur d'arrêter de suivre les
      * modifications d'une année.
-     * 
+     *
      * @param idAnnee L'identifiant de l'année à suivre.
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
-     * 
-     * @return 3 possibilités : 
-     * - Un code HTTP 200 si la demande de suivi se passe bien. 
-     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande. 
+     *
+     * @return 3 possibilités :
+     * - Un code HTTP 200 si la demande de suivi se passe bien.
+     * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé) qui a fait la demande.
      * - Un code HTTP 500 si une erreur SQL se produit.
      * - Un code HTTP 403 si l'année est déjà suivie pour l'admin spécifié.
      */
@@ -584,31 +680,31 @@ public class AdminService {
     
     /**
      * Méthode permettant d'ajouter un appareil Android à un admin.
-     * 
+     *
      * @param idGCM L'identifiant de l'appareil une fois enregistré à GCM.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la
      * requête. Permet d'éviter les rejeux.
-     * 
+     *
      * @return 4 possibilités :
      * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté (donc autorisé).
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
      * - Un code HTTP 403 si l'appareil à ajouter existe déjà en base.
-     * - Un code HTTP 500 si une erreur SQL se produit. 
+     * - Un code HTTP 500 si une erreur SQL se produit.
      */
     @Path("registerAndroidDevice")
     @PUT
-    public Response registerAndroidDevice(@QueryParam("idGCM") 
-                                              String idGCM,
-                                          @QueryParam("pseudo") 
-                                              String pseudo,
-                                          @QueryParam("token") 
-                                              String token,
-                                          @QueryParam("timestamp") 
-                                              long timestamp) {
+    public Response registerAndroidDevice(@QueryParam("idGCM")
+            String idGCM,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
         Connection connexion = null;
         Statement stmt = null;
@@ -622,13 +718,13 @@ public class AdminService {
                 
                 stmt = connexion.createStatement();
                 results = stmt.executeQuery("SELECT * FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
-            
+                
                 int idAdmin = 0;
-            
+                
                 while (results.next()) {
                     idAdmin = results.getInt("ID");
                 }
-
+                
                 results.close();
                 stmt.close();
                 
@@ -697,14 +793,14 @@ public class AdminService {
     
     @Path("unregisterAndroidDevice")
     @PUT
-    public Response unregisterAndroidDevice(@QueryParam("idGCM") 
-                                              String idGCM,
-                                          @QueryParam("pseudo") 
-                                              String pseudo,
-                                          @QueryParam("token") 
-                                              String token,
-                                          @QueryParam("timestamp") 
-                                              long timestamp) {
+    public Response unregisterAndroidDevice(@QueryParam("idGCM")
+            String idGCM,
+            @QueryParam("pseudo")
+                    String pseudo,
+            @QueryParam("token")
+                    String token,
+            @QueryParam("timestamp")
+                    long timestamp) {
         
         Connection connexion = null;
         Statement stmt = null;
@@ -734,7 +830,7 @@ public class AdminService {
                     } catch (SQLException exc) {
                         Logger.getLogger(EtablissementService.class.getName()).log(Level.SEVERE, null, exc);
                     }
-                }     
+                }
                 
                 return Response.status(500).build();
             }
@@ -893,7 +989,7 @@ public class AdminService {
         return Response.status(200).build();
     }
     
-     /**
+    /**
      * Méthode permettant de clôturer un compte admin.
      *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
@@ -921,7 +1017,7 @@ public class AdminService {
         Connection connexion = SQLUtils.getConnexion();
         
         ResultSet r = null;
-                
+        
         Statement stmt = null;
         Statement stmt2 = null;
         Statement stmt3 = null;
@@ -929,11 +1025,11 @@ public class AdminService {
         int idAdmin = 0;
         
         try {
-            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {                
+            if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 stmt = connexion.createStatement();
                 r = stmt.executeQuery("SELECT ADMINISTRATEUR.ID "
-                                    + "FROM ADMINISTRATEUR "
-                                    + "WHERE (ADMINISTRATEUR.PSEUDO = '" + pseudo + "');");
+                        + "FROM ADMINISTRATEUR "
+                        + "WHERE (ADMINISTRATEUR.PSEUDO = '" + pseudo + "');");
                 
                 while (r.next()) {
                     idAdmin = r.getInt("ADMINISTRATEUR.ID");
