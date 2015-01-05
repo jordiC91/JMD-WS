@@ -237,6 +237,7 @@ public class AdminUtils {
             stmt = connexion.createStatement();
             ArrayList<String> devicesList = new ArrayList<>();
             
+            // Création du message à envoyer.
             results = stmt.executeQuery("SELECT ADMIN_ANDROID.GCM_ID " +
                     "FROM ADMIN_FOLLOWER, ADMIN_ANDROID " +
                     "WHERE (ADMIN_FOLLOWER.ID_ADMIN = ADMIN_ANDROID.ID_ADMIN) " +
@@ -250,9 +251,7 @@ public class AdminUtils {
             results.close();
             stmt.close();
             
-// Création du message à envoyer.
-            
-// Création du message GCM.
+            // Création du message GCM.
             if (devicesList.size() > 0){
                 com.google.android.gcm.server.Message notification = new com.google.android.gcm.server.Message.Builder()
                         .collapseKey("1")
@@ -263,8 +262,7 @@ public class AdminUtils {
                 
                 MulticastResult result = sender.send(notification, devicesList, 1);
                 
-                sender.send(notification, devicesList, 1);
-                
+                sender.send(notification, devicesList, 1);          
                 
                 if (result.getResults() == null) {
                     Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, "Erreur : " + result.getFailure());
