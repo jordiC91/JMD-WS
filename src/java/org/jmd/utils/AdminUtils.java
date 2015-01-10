@@ -260,7 +260,7 @@ public class AdminUtils {
                         .addData("message", message)
                         .build();
                 
-                MulticastResult result = sender.send(notification, devicesList, 1);
+                MulticastResult result = sender.send(notification, devicesList, 5);
                 
                 sender.send(notification, devicesList, 1);          
                 
