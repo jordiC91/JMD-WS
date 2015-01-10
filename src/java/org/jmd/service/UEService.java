@@ -196,7 +196,6 @@ public class UEService {
                 idAnnee = r.getInt("UE.ID_ANNEE");
                 nomUE = r.getString("UE.NOM");
                 
-                //stmt.executeUpdate("DELETE FROM MATIERE WHERE (ID_UE = " + id + ")");
                 stmt.executeUpdate("DELETE FROM UE WHERE (ID = " + id + ")");
                 
                 r.close();

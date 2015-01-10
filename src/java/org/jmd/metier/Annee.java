@@ -72,8 +72,8 @@ public class Annee {
     /**
      * L'établissement où l'année est rattachée.
      */
-    @XmlElement(name="eta")
-    private Etablissement eta;
+    @XmlElement(name="etablissement")
+    private Etablissement etablissement;
     
     /**
      * Constructeur par défaut de la classe.
@@ -195,7 +195,7 @@ public class Annee {
      * @return L'établissement où est rattachée l'année.
      */
     public Etablissement getEtablissement() {
-        return this.eta;
+        return this.etablissement;
     }
     
     /* Setters. */
@@ -292,11 +292,11 @@ public class Annee {
     }
     
     /**
-     * Méthode permettant de modifier l'établissement où est rattachée l'année.
+     * Méthode permettant de modifier l'établissement où est rattaché l'année.
      *
-     * @param eta Le nouvel établissement où sera rattachée l'année.
+     * @param etablissement Le nouvel établissement où sera rattaché l'année.
      */
-    public void setEtablissement(Etablissement eta) {
-        this.eta = eta;
+    public void setEtablissement(Etablissement etablissement) {
+        this.etablissement = etablissement;
     }
 }

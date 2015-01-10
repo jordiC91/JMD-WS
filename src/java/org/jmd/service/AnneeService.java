@@ -192,19 +192,6 @@ public class AnneeService {
                 stmt1.close();
                 
                 stmt2 = connexion.createStatement();
-                
-                /*
-                // Suppression des matières de l'année.
-                for (Integer idMatiereListe : idMatiereList) {
-                    stmt2.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereListe + ")");
-                }
-                
-                // Suppression des UE de l'année.
-                for (Integer idUEListe : idUEList) {
-                    stmt2.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEListe + ")");
-                }
-                */
-                
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
                 stmt2.close();                
                 connexion.close();
@@ -647,6 +634,7 @@ public class AnneeService {
                     a.setNom(results.getString("ANNEE.NOM"));
                     a.setIdEtablissement(results.getInt("ID_ETABLISSEMENT"));
                     a.setIdDiplome(results.getInt("ID_DIPLOME"));
+                    a.setNomDiplome(results.getString("DIPLOME.NOM"));
                     a.setIsLastYear(results.getBoolean("IS_LAST_YEAR"));
                     a.setDecoupage(results.getString("DECOUPAGE"));
                     a.setIsFollowed(isFollowed(a.getIdAnnee(), idAdmin));
@@ -654,9 +642,9 @@ public class AnneeService {
                     Etablissement e = new Etablissement();
                     e.setIdEtablissement(results.getInt("ETABLISSEMENT.ID"));
                     e.setNom(results.getString("ETABLISSEMENT.NOM"));
-                    e.setVille(results.getString("VILLE"));
+                    e.setVille(results.getString("ETABLISSEMENT.VILLE"));
                     a.setEtablissement(e);
-                    
+                                        
                     annees.add(a);
                 }
             } else {
