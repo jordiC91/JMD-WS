@@ -146,10 +146,26 @@ public class AnneeService {
         Statement stmt2 = null;
         ResultSet results1 = null;
         ResultSet results2 = null;
+        String annee = "";
+        String diplome = "";
         
         if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
             try {
                 connexion = SQLUtils.getConnexion();
+                
+                Statement stmt = connexion.createStatement();
+                
+                ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
+                        "FROM ANNEE, DIPLOME " +
+                        "WHERE ANNEE.ID = " +id+" "+
+                        "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
+                
+                results.next();
+                diplome = results.getString("DIPLOME.NOM");
+                annee = results.getString("ANNEE.NOM");
+                results.close();
+                stmt.close();
+                
                 stmt1 = connexion.createStatement();
                 stmt2 = connexion.createStatement();
                 
@@ -177,6 +193,7 @@ public class AnneeService {
                 
                 stmt2 = connexion.createStatement();
                 
+                /*
                 // Suppression des matières de l'année.
                 for (Integer idMatiereListe : idMatiereList) {
                     stmt2.executeUpdate("DELETE FROM MATIERE WHERE (ID = " + idMatiereListe + ")");
@@ -186,12 +203,10 @@ public class AnneeService {
                 for (Integer idUEListe : idUEList) {
                     stmt2.executeUpdate("DELETE FROM UE WHERE (ID = " + idUEListe + ")");
                 }
+                */
                 
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
-                stmt2.executeUpdate("DELETE FROM ADMIN_FOLLOWER WHERE (ID_ANNEE = " + id + ");");
-
-                stmt2.close();
-
+                stmt2.close();                
                 connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -242,31 +257,31 @@ public class AnneeService {
             return Response.status(401).build();
         }
         
+        final String anneeF = annee;
+        final String diplomeF = diplome;
+        
         new Thread(new Runnable() {
             @Override
             public void run() {
+                try {
                     String message = "";
-                    try {
-                        Connection connexion = SQLUtils.getConnexion();
-                        Statement stmt = connexion.createStatement();
-                        
-                        ResultSet results = stmt.executeQuery("SELECT ANNEE.NOM, DIPLOME.NOM " +
-                                "FROM ANNEE, DIPLOME " +
-                                "WHERE ANNEE.ID = " +id+" "+
-                                "AND ANNEE.ID_DIPLOME = DIPLOME.ID");
-                        
-                        results.next();
-                        message = results.getString("ANNEE.NOM")+" ("+results.getString("DIPLOME.NOM")+") : Cette année a été supprimée par "+pseudo+".";
-                        results.close();
-                        stmt.close();
-                    } catch (SQLException ex) {
-                        Logger.getLogger(UEService.class.getName()).log(Level.SEVERE, null, ex);
-                    }
+                    message = anneeF+" ("+diplomeF+") : Cette année a été supprimée par "+pseudo+".";
                     
                     int exceptIdAdmin = AdminUtils.getIdAdmin(pseudo);
                     AdminUtils.notifyMail(message, id, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, id, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, id, exceptIdAdmin);
+                    
+                    Connection connexion = SQLUtils.getConnexion();
+                    Statement stmt = connexion.createStatement();
+                    stmt.executeUpdate("DELETE FROM ADMIN_FOLLOWER WHERE (ID_ANNEE = " + id + ");");
+                    stmt.close();
+                    connexion.close();
+                    
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                
             }
         }).start();
         
