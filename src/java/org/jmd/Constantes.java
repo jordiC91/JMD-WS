@@ -12,7 +12,7 @@ public class Constantes {
     /**
      * L'URL d'accès aux services web sur le serveur de prod.
      */
-    public static String SERVER_URL = "http://ns3281017.ip-5-39-94.eu:8080/JMD-Webservice/webresources/";
+    public static String SERVER_URL = "http://5.39.94.146:8080/JMD/webresources/";
     
     /**
      * L'URL d'accès aux services web sur le serveur de dév.

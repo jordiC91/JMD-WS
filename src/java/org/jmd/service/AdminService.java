@@ -161,30 +161,29 @@ public class AdminService {
             @FormParam("token")
                     String token) {
         
-                Connection connexion = null;
+        Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
         
         try {
-                connexion = SQLUtils.getConnexion();
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT ID FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
+            
+            int idAdmin = 0;
+            
+            while (results.next()) {
+                idAdmin = results.getInt("ID");
+            }
+            
+            results.close();
+            stmt.close();
+            if (idAdmin > 0){
                 stmt = connexion.createStatement();
-                results = stmt.executeQuery("SELECT ID FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
-                
-                int idAdmin = 0;
-                
-                while (results.next()) {
-                    idAdmin = results.getInt("ID");
-                }
-                
-                results.close();
+                stmt.execute("INSERT INTO ADMIN_IOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
                 stmt.close();
-                if (idAdmin > 0){
-                    stmt = connexion.createStatement();
-                    stmt.execute("INSERT INTO ADMIN_IOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
-                    stmt.close();
-                    connexion.close();
-                }
-              
+                connexion.close();
+            }
         } catch (SQLException ex) {
             Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
             
@@ -496,14 +495,14 @@ public class AdminService {
     /**
      * Méthode permettant de savoir si un administrateur donné accepte l'envoi
      * de mail ou non.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
      *
      * @return 3 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté 
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté
      * (donc autorisé) avec le booléen demandé.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
@@ -573,16 +572,16 @@ public class AdminService {
     
     /**
      * Méthode permettant de modifier le champ ACCEPT_MAIL pour un admin donné.
-     * 
+     *
      * @param newValue La nouvelle valeur du booléen.
-     * 
+     *
      * @param pseudo Le pseudo de l'administrateur ayant fait la demande.
      * @param token Le token envoyé par l'administrateur.
      * @param timestamp Le timestamp envoyé par l'administrateur ayant fait la requête.
      * Permet d'éviter les rejeux.
      *
      * @return 3 possibilités :
-     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté 
+     * - Un code HTTP 200 si l'utilisateur ayant fait la demande est connecté
      * (donc autorisé) et si la modification s'est bien faite.
      * - Un code HTTP 401 si c'est un utilisateur non connecté (donc non autorisé)
      * qui a fait la demande.
@@ -689,10 +688,10 @@ public class AdminService {
             connexion.close();
             
             String text = "Bonjour " + pseudo + ",<br />"
-                    + "Merci de cliquer <a href=\"" + Constantes.SERVER_URL + "/admin/resetPassword?pseudo="+ pseudo+ "&code=" + randomString + "\">ici</a> pour réinitialiser votre mot de passe."
+                    + "Merci de cliquer <a href=\"" + Constantes.SERVER_URL + "admin/resetPassword?pseudo="+ pseudo+ "&code=" + randomString + "\">ici</a> pour réinitialiser votre mot de passe."
                     + "<br /><br />"
                     + "Cordialement,<br />L'équipe de JMD<br /><br />"
-                    + "PS : Si vous n'êtes pas à l'origine de cette demande, merci de cliquer <a href=\""+ Constantes.SERVER_URL + "/admin/cancelResetRequest?pseudo="+ pseudo + "\">ici</a>.";
+                    + "PS : Si vous n'êtes pas à l'origine de cette demande, merci de cliquer <a href=\""+ Constantes.SERVER_URL + "admin/cancelResetRequest?pseudo="+ pseudo + "\">ici</a>.";
             
             String subject = "JMD - Mot de passe oublié";
             
@@ -1086,8 +1085,9 @@ public class AdminService {
                 String subject = "JMD - Nouveau mot de passe";
                 
                 AdminUtils.sendMail(subject, text, emailAdmin);
+                String sel = AdminUtils.generateRandomCode();
                 
-                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + SecurityUtils.sha256(newMdp) + "' WHERE (PSEUDO = '" + pseudo + "')");
+                stmt.executeUpdate("UPDATE ADMINISTRATEUR SET PASSWORD = '" + SecurityUtils.sha256(SecurityUtils.sha256(newMdp) + sel) + "', SEL = '"+ sel +"' WHERE (PSEUDO = '" + pseudo + "')");
             }
             
             results.close();
@@ -1179,39 +1179,13 @@ public class AdminService {
                     long timestamp) {
         
         Connection connexion = SQLUtils.getConnexion();
-        
-        ResultSet r = null;
-        
         Statement stmt = null;
-        Statement stmt2 = null;
-        Statement stmt3 = null;
-        
-        int idAdmin = 0;
         
         try {
             if (AdminUtils.checkToken(pseudo, token) && AdminUtils.checkTimestamp(pseudo, timestamp)) {
                 stmt = connexion.createStatement();
-                r = stmt.executeQuery("SELECT ADMINISTRATEUR.ID "
-                        + "FROM ADMINISTRATEUR "
-                        + "WHERE (ADMINISTRATEUR.PSEUDO = '" + pseudo + "');");
-                
-                while (r.next()) {
-                    idAdmin = r.getInt("ADMINISTRATEUR.ID");
-                }
-                
-                r.close();
+                stmt.executeUpdate("DELETE FROM ADMINISTRATEUR WHERE PSEUDO = '" + pseudo + "';");
                 stmt.close();
-                
-                stmt2 = connexion.createStatement();
-                stmt2.executeUpdate("DELETE FROM ADMIN_FOLLOWER WHERE ID_ADMIN = " + idAdmin + ";");
-                
-                stmt2.close();
-                
-                stmt3 = connexion.createStatement();
-                stmt3.executeUpdate("DELETE FROM ADMINISTRATEUR WHERE PSEUDO = '" + pseudo + "';");
-                
-                stmt3.close();
-                
                 connexion.close();
                 
                 return Response.status(200).build();
