@@ -3,6 +3,11 @@ package org.jmd.utils;
 import com.google.android.gcm.server.MulticastResult;
 import com.google.android.gcm.server.Sender;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
+import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
+import java.net.ProtocolException;
+import java.net.URL;
 import java.sql.*;
 import java.util.*;
 import java.util.logging.*;
@@ -13,6 +18,7 @@ import javapns.notification.PushedNotification;
 import javax.mail.*;
 import javax.mail.Transport;
 import javax.mail.internet.*;
+import org.apache.log4j.BasicConfigurator;
 import org.jmd.Constantes;
 import org.jmd.service.*;
 
@@ -157,6 +163,7 @@ public class AdminUtils {
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
+        BasicConfigurator.configure();
         
         try {
             connexion = SQLUtils.getConnexion();
@@ -177,14 +184,34 @@ public class AdminUtils {
             
             String [] devices = tokenList.toArray(new String[tokenList.size()]);
             if (tokenList.size() > 0){
-                List<PushedNotification> notifications = Push.alert(message, IOSUtils.pathToCert, IOSUtils.pwdCert, IOSUtils.isProduction, devices);
-                
+                List<PushedNotification> notifications = Push.alert(message, IOSUtils.pathToCertProd, IOSUtils.pwdCert, true, devices);
                 for (PushedNotification notification : notifications) {
+                    
                     if (!notification.isSuccessful()) {
-                        String invalidToken = notification.getDevice().getToken();
-                        stmt = connexion.createStatement();
-                        stmt.executeUpdate("DELETE FROM ADMIN_IOS WHERE (TOKEN  = '" + invalidToken + "');");
-                        stmt.close();
+                        System.out.println("Failed : PROD : "+notification.getDevice().getToken());
+                        String [] devices2 = new String[1];
+                        devices[0] = notification.getDevice().getToken();
+                        List<PushedNotification> notifications2 = Push.alert(message, IOSUtils.pathToCertDev, IOSUtils.pwdCert, false, devices2);
+                        if (notifications2.size() > 0){
+                            for (PushedNotification notification2 : notifications2) {
+                                System.out.println("DEV : "+notification.getDevice().getToken());
+                                
+                                if (!notification2.isSuccessful()){
+                                    System.out.println("Failed : "+notification.getDevice().getToken());
+                                    
+                                    String invalidToken = notification2.getDevice().getToken();
+                                    stmt = connexion.createStatement();
+                                    stmt.executeUpdate("DELETE FROM ADMIN_IOS WHERE (TOKEN  = '" + invalidToken + "');");
+                                    stmt.close();
+                                }
+                                else {
+                                    System.out.println("Success : DEV : "+notification.getDevice().getToken());
+                                }
+                            }
+                        }
+                    }
+                    else {
+                        System.out.println("Success : PROD : "+notification.getDevice().getToken());
                     }
                 }
             }
@@ -262,13 +289,96 @@ public class AdminUtils {
                 
                 MulticastResult result = sender.send(notification, devicesList, 5);
                 
-                sender.send(notification, devicesList, 1);          
+                sender.send(notification, devicesList, 1);
                 
                 if (result.getResults() == null) {
                     Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, "Erreur : " + result.getFailure());
                 }
             }
         } catch (SQLException | IOException ex) {
+            Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+    }
+    
+    public static void notifyFirefoxOs(String message, int idAnnee, int exceptIdAdmin){
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            ArrayList<String> devicesList = new ArrayList<>();
+            
+            // set Last Message
+            
+            String query = "UPDATE ADMIN_FFOS, ADMIN_FOLLOWER " +
+                                "SET ADMIN_FFOS.LAST_MESSAGE = '"+message.replaceAll("'", "''")+"' " +
+                                "WHERE (ADMIN_FOLLOWER.ID_ADMIN = ADMIN_FFOS.ID_ADMIN) " +
+                                "AND (ADMIN_FOLLOWER.ID_ANNEE = "+ idAnnee +") " +
+                                "AND (ADMIN_FOLLOWER.ID_ADMIN <> "+ exceptIdAdmin +");";
+            
+            String finalQuery = query; 
+            System.out.println(finalQuery);
+            
+            
+            stmt.executeUpdate(finalQuery);
+            
+            // Récupération des Tokens pour notification
+            results = stmt.executeQuery("SELECT ADMIN_FFOS.TOKEN " +
+                    "FROM ADMIN_FOLLOWER, ADMIN_FFOS " +
+                    "WHERE (ADMIN_FOLLOWER.ID_ADMIN = ADMIN_FFOS.ID_ADMIN) " +
+                    "AND (ADMIN_FOLLOWER.ID_ANNEE = "  + idAnnee + ") "+
+                    "AND (ADMIN_FOLLOWER.ID_ADMIN <> " + exceptIdAdmin +");");
+            
+            while (results.next()) {
+                devicesList.add(results.getString("ADMIN_FFOS.TOKEN"));
+            }
+            results.close();
+            stmt.close();
+            
+            // Création du message GCM.
+            if (devicesList.size() > 0){
+               for (int i = devicesList.size()-1; i >= 0; i--){
+                   try {
+                       URL url = new URL("https://updates.push.services.mozilla.com/update/"+devicesList.get(i));
+                       HttpURLConnection httpCon = (HttpURLConnection) url.openConnection();
+                       httpCon.setDoOutput(true);
+                       httpCon.setRequestMethod("PUT");
+                       httpCon.getInputStream();
+                   } catch (MalformedURLException ex) {
+                       Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                   } catch (ProtocolException ex) {
+                       Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                   } catch (IOException ex) {
+                       Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
+                   }
+               }
+            }
+        } catch (SQLException ex) {
             Logger.getLogger(AdminUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         finally {

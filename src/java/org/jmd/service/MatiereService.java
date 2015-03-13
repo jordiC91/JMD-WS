@@ -176,6 +176,7 @@ public class MatiereService {
                     AdminUtils.notifyMail(message, idAnneeFin, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, idAnneeFin, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyFirefoxOs(message, idAnneeFin, exceptIdAdmin);
                 }
             }).start();
             
@@ -329,6 +330,7 @@ public class MatiereService {
                     AdminUtils.notifyMail(message, idAnneeFin, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, idAnneeFin, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, idAnneeFin, exceptIdAdmin);
+                    AdminUtils.notifyFirefoxOs(message, idAnneeFin, exceptIdAdmin);
                 }
             }).start();
             

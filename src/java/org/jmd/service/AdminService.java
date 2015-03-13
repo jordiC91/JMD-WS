@@ -87,7 +87,6 @@ public class AdminService {
                     return Response.status(403).build();
                 }
                 
-                
                 String token = AdminUtils.generateRandomCode();
                 stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TOKEN = '" + token + "' WHERE PSEUDO = '" + pseudo + "';");
                 stmt.executeUpdate("UPDATE ADMINISTRATEUR SET TIMESTAMP_USER = " + new java.util.Date().getTime() + " WHERE PSEUDO = '" + pseudo + "';");
@@ -180,7 +179,7 @@ public class AdminService {
             stmt.close();
             if (idAdmin > 0){
                 stmt = connexion.createStatement();
-                stmt.execute("INSERT INTO ADMIN_IOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
+                stmt.execute("INSERT IGNORE INTO ADMIN_IOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
                 stmt.close();
                 connexion.close();
             }
@@ -328,6 +327,100 @@ public class AdminService {
                 }
             }
         }
+    }
+    
+    /**
+     * Méthode permettant de connecter un utilisateur.
+     * Si les logins envoyés sont bons, le serveur génère un token (20 caractères)
+     * et l'envoie à l'utilisateur.
+     *
+     * @param pseudo Le pseudo de l'utilisateur.
+     * @param password Le mot de passe de l'utilisateur.
+     * @param token Le Token Mozilla du device de l'utilisateur.
+     *
+     * @return 4 possibilités :
+     * - Un code HTTP 200 si les identifiants sont bons.
+     * - Un code HTTP 401 si les identifiants n'étaient pas bons.
+     * - Un code HTTP 403 si le compte n'est pas activé ou plus actif.
+     * - Un code HTTP 500 si une erreur SQL se produit.
+     */
+    @POST
+    @Path("ffoslogin")
+    public Response firefoxOslogin(
+            @FormParam("username")
+                    String pseudo,
+            @FormParam("password")
+                    String password,
+            @FormParam("token")
+                    String token) {
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT ID FROM ADMINISTRATEUR WHERE (PSEUDO ='" + pseudo + "')");
+            
+            int idAdmin = 0;
+            
+            while (results.next()) {
+                idAdmin = results.getInt("ID");
+            }
+            
+            results.close();
+            stmt.close();
+            if (idAdmin > 0){
+                stmt = connexion.createStatement();
+                stmt.execute("INSERT IGNORE INTO ADMIN_FFOS (ID_ADMIN, TOKEN) VALUES (" + idAdmin + ", '" + token + "');");
+                stmt.close();
+                connexion.close();
+            }
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+            
+            if (results != null) {
+                try {
+                    results.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException exc) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, exc);
+                }
+            }
+        } finally {
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return this.login(pseudo, password);
     }
     
     /**
@@ -1470,5 +1563,105 @@ public class AdminService {
         }
         
         return Response.status(200).build();
+    }
+    
+    @Path("lastMessage")
+    @GET
+    public String getLastMessage(@QueryParam("token") String token){
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        String toReturn = "";
+        
+        try {
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            results = stmt.executeQuery("SELECT LAST_MESSAGE FROM ADMIN_FFOS WHERE TOKEN = '"+token+"';");
+            results.next();
+            toReturn = results.getString("LAST_MESSAGE");
+            stmt.close();
+            connexion.close();
+            
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if (results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return toReturn;
+    }
+    
+    @Path("updateTokenFFOS")
+    @GET
+    public Response getLastMessage(@QueryParam("old") String oldToken, @QueryParam("new") String newToken){
+        Connection connexion = null;
+        Statement stmt = null;
+        ResultSet results = null;
+        
+        try {
+            connexion = SQLUtils.getConnexion();
+            stmt = connexion.createStatement();
+            
+            results = stmt.executeQuery("SELECT COUNT( ID_ADMIN ) FROM ADMIN_FFOS WHERE TOKEN = '"+ oldToken +"';");
+            results.next();
+            if (results.getInt("COUNT( ID_ADMIN )") > 0 ){
+                stmt.executeUpdate("UPDATE ADMIN_FFOS SET TOKEN = " + newToken + " WHERE TOKEN = '" + oldToken + "';");
+            }
+            results.close();
+            stmt.close();
+            connexion.close();
+        } catch (SQLException ex) {
+            Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        finally {
+            if (results != null ) {
+                try {
+                    results.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (stmt != null) {
+                try {
+                    stmt.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+            
+            if (connexion != null) {
+                try {
+                    connexion.close();
+                } catch (SQLException ex) {
+                    Logger.getLogger(AdminService.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            }
+        }
+        
+        return Response.status(Response.Status.OK).build();
     }
 }

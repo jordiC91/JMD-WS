@@ -139,6 +139,7 @@ public class UEService {
                     AdminUtils.notifyMail(message, idAnnee, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, idAnnee, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, idAnnee, exceptIdAdmin);
+                    AdminUtils.notifyFirefoxOs(message, idAnnee, exceptIdAdmin);
                 }
             }).start();
             
@@ -276,6 +277,7 @@ public class UEService {
                     AdminUtils.notifyMail(message, idAnneeT, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, idAnneeT, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, idAnneeT, exceptIdAdmin);
+                    AdminUtils.notifyFirefoxOs(message, idAnneeT, exceptIdAdmin);
                 }
             }).start();
             

@@ -193,7 +193,7 @@ public class AnneeService {
                 
                 stmt2 = connexion.createStatement();
                 stmt2.executeUpdate("DELETE FROM ANNEE WHERE (ID = " + id + ");");
-                stmt2.close();                
+                stmt2.close();
                 connexion.close();
             } catch (SQLException ex) {
                 Logger.getLogger(AnneeService.class.getName()).log(Level.SEVERE, null, ex);
@@ -258,6 +258,7 @@ public class AnneeService {
                     AdminUtils.notifyMail(message, id, exceptIdAdmin);
                     AdminUtils.notifyAndroid(message, id, exceptIdAdmin);
                     AdminUtils.notifyiOS(message, id, exceptIdAdmin);
+                    AdminUtils.notifyFirefoxOs(message, id, exceptIdAdmin);
                     
                     Connection connexion = SQLUtils.getConnexion();
                     Statement stmt = connexion.createStatement();
@@ -644,7 +645,7 @@ public class AnneeService {
                     e.setNom(results.getString("ETABLISSEMENT.NOM"));
                     e.setVille(results.getString("ETABLISSEMENT.VILLE"));
                     a.setEtablissement(e);
-                                        
+                    
                     annees.add(a);
                 }
             } else {
