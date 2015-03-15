@@ -1615,8 +1615,8 @@ public class AdminService {
     }
     
     @Path("updateTokenFFOS")
-    @GET
-    public Response getLastMessage(@QueryParam("old") String oldToken, @QueryParam("new") String newToken){
+    @PUT
+    public Response updateTokenFFOS(@FormParam("old") String oldToken, @FormParam("new") String newToken){
         Connection connexion = null;
         Statement stmt = null;
         ResultSet results = null;
@@ -1628,7 +1628,7 @@ public class AdminService {
             results = stmt.executeQuery("SELECT COUNT( ID_ADMIN ) FROM ADMIN_FFOS WHERE TOKEN = '"+ oldToken +"';");
             results.next();
             if (results.getInt("COUNT( ID_ADMIN )") > 0 ){
-                stmt.executeUpdate("UPDATE ADMIN_FFOS SET TOKEN = " + newToken + " WHERE TOKEN = '" + oldToken + "';");
+                stmt.executeUpdate("UPDATE ADMIN_FFOS SET TOKEN = '" + newToken + "' WHERE TOKEN = '" + oldToken + "';");
             }
             results.close();
             stmt.close();
